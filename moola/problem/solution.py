@@ -1,8 +1,8 @@
 class Solution(dict):
     ''' The Solution of an optimisation run. ''' 
+    def __str__(self):
+        s = ""
+        for k, v in self.items():
+            s += "%s:\t\t%s\n" % (k, v)
+        return s
 
-    def __init__(self):
-        self["Optimizer"] = None
-        self["Number of iterations"] = None
-        self["Number of functional evaluations"] = None
-        self["Number of functional gradient evaluations"] = None

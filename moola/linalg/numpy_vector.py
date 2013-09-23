@@ -5,8 +5,12 @@ class NumpyVector(Vector):
     ''' An implementation for vectors based on numpy arrays. '''
 
     def __init__(self, data):
-        ''' Creates a new NumpyVector. The parameter 'data' must be 
-        a numpy array. '''
+        ''' Creates a new NumpyVector with a deep-copy of the 
+        underlying data. The parameter 'data' must be 
+        a NumpyVector or a numpy.array. '''
+        if isinstance(data, NumpyVector):
+            data = data.data
+
         self.data = np.array(data)
 
     def __len__(self):
@@ -26,7 +30,7 @@ class NumpyVector(Vector):
 
     def inner(self, data):
         ''' Computes the inner product of the function and data. ''' 
-        np.dot(self.data, data)
+        return np.dot(self.data, data)
 
     def norm(self, type="l2"):
         ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
@@ -37,4 +41,4 @@ class NumpyVector(Vector):
 
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
-        self.data += a*x
+        self.data += a*x.data

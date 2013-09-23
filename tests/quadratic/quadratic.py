@@ -13,21 +13,20 @@ class MyFunctional(ObjectiveFunctional):
 
     def gradient(self, x):
         arr = x.data
-        return NumpyVector(2*arr)
+        return NumpyVector(arr)
 
-init_control = NumpyVector(random(12))
+init_control = NumpyVector(np.ones(1))
 
 obj = MyFunctional()
 prob = Problem(obj, init_control)
 
 
 options = {}
-options["line_seach"] = None
-
 solver = SteepestDescent(options=options)
+
 print solver
 sol = solver.solve(prob)
 print sol
 
 assert sol["Optimizer"].norm("L2") < 1e-10
-assert sol["Number of iterations"] == 1
+assert sol["Number of iterations"] == 2

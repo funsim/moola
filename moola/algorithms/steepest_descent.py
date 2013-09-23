@@ -89,7 +89,7 @@ class SteepestDescent(object):
                 tmpm = m_prev.__class__(m_prev)
                 tmpm.axpy(alpha, s) # m = m_prev + alpha*s
 
-                p = phi(tmpm) 
+                p = phi(alpha) 
                 djs = obj.derivative(tmpm)(s)
                 return p, djs
 

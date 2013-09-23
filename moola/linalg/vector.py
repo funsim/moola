@@ -1,9 +1,9 @@
 class Vector(object):
     ''' An abstract implementation for vectors. '''
 
-    def __init__(self, values):
-        ''' Creates a new Vector with (a deep-copy of) the provided values. '''
-        raise NotImplementedError, "Vector.__init__ is not implemented"
+    def __init__(self):
+        ''' Creates a new Vector with (a deep-copy of) the provided data. '''
+        self.data = data
 
     def __len__(self):
         ''' Returns the (local) length. '''

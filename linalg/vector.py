@@ -1,25 +1,33 @@
 class Vector(object):
     ''' An abstract implementation for vectors. '''
 
+    def __init__(self, values):
+        ''' Creates a new Vector with (a deep-copy of) the provided values. '''
+        raise NotImplementedError, "Vector.__init__ is not implemented"
+
+    def __len__(self):
+        ''' Returns the (local) length. '''
+        raise NotImplementedError, "Vector.__len__ is not implemented"
+
+    def __getitem__(self, index):
+        ''' Returns the value of the (local) index. '''
+        raise NotImplementedError, "Vector.__getitem__ is not implemented"
+
+    def __setitem__(self, index, value):
+        ''' Sets the value of the (local) index. '''
+        raise NotImplementedError, "Vector.__setitem__ is not implemented"
+
     def scale(self, s):
-        raise NotImplementedError, "Vector.scale not implemented"
+        raise NotImplementedError, "Vector.scale is not implemented"
 
     def inner(self, f):
         ''' Computes the inner product of the function and f. ''' 
-        raise NotImplementedError, "Vector.inner not implemented"
+        raise NotImplementedError, "Vector.inner is not implemented"
 
     def norm(self, type="l2"):
         ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
-        raise NotImplementedError, "Vector.norm not implemented"
+        raise NotImplementedError, "Vector.norm is not implemented"
 
-    def deep_copy(self):
-        ''' Returns a deep copy. ''' 
-        raise NotImplementedError, "Vector.norm not implemented"
-    
-    def axpy(self, a, f):
-        ''' Adds a*f to the function. '''
-        raise NotImplementedError, "Vector.axpy not implemented"
-
-    def assign(self, x):
-        ''' Assigns x to the function. '''
-        raise NotImplementedError, "Vector.assign not implemented"
+    def axpy(self, a, x):
+        ''' Adds a*x to the function. '''
+        raise NotImplementedError, "Vector.axpy is not implemented"

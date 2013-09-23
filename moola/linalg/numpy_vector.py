@@ -2,7 +2,7 @@ from vector import Vector
 import numpy as np
 
 class NumpyVector(Vector):
-    ''' An abstract implementation for vectors. '''
+    ''' An implementation for vectors based on numpy arrays. '''
 
     def __init__(self, values):
         ''' Creates a new NumpyVector. The parameter values must be 

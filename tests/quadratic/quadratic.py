@@ -15,7 +15,7 @@ class MyFunctional(ObjectiveFunctional):
         arr = x.data
         return NumpyVector(arr)
 
-init_control = NumpyVector(np.ones(1))
+init_control = NumpyVector(random(5))
 
 obj = MyFunctional()
 prob = Problem(obj, init_control)

@@ -4,6 +4,7 @@
 '''
 from moola import *
 import numpy as np
+from numpy.random import random
 
 class MyFunctional(ObjectiveFunctional):
     def __call__(self, x):
@@ -14,7 +15,7 @@ class MyFunctional(ObjectiveFunctional):
         arr = x.data
         return NumpyVector(2*arr)
 
-init_control = NumpyVector(np.ones(12)*1.2)
+init_control = NumpyVector(random(12))
 
 obj = MyFunctional()
 prob = Problem(obj, init_control)
@@ -29,3 +30,4 @@ sol = solver.solve(prob)
 print sol
 
 assert sol["Optimizer"].norm("L2") < 1e-10
+assert sol["Number of iterations"] == 1

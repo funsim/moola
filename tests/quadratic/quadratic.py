@@ -26,5 +26,6 @@ options["line_seach"] = None
 solver = SteepestDescent(options=options)
 print solver
 sol = solver.solve(prob)
-
 print sol
+
+assert sol["Optimizer"].norm("L2") < 1e-10

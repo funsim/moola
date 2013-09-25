@@ -6,8 +6,8 @@ class Vector(object):
         self.data = data
 
     def __len__(self):
-        ''' Returns the (local) length. '''
-        raise NotImplementedError, "Vector.__len__ is not implemented"
+        ''' Returns the (local) size. '''
+        return self.local_size()
 
     def __getitem__(self, index):
         ''' Returns the value of the (local) index. '''
@@ -31,3 +31,21 @@ class Vector(object):
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
         raise NotImplementedError, "Vector.axpy is not implemented"
+    
+    def local_size(self):
+        ''' Returns the (local) size of the vector. '''
+        raise NotImplementedError, "Vector.__local_size__ is not implemented"
+
+    def size(self):
+        ''' Returns the (global) size of the vector. '''
+        raise NotImplementedError, "Vector.__size__ is not implemented"
+
+    def has_petsc_support(self):
+        ''' Returns True if the vector can be converted to a PETSc vector. '''
+        raise NotImplementedError, "Vector.has_petsc_support is not implemented"
+
+    def to_petsc(self):
+        ''' Returns the PETSc vector. Must only be implemented if has_petsc_support returns True. ''' 
+        raise NotImplementedError, "Vector.to_petsc is not implemented"
+
+

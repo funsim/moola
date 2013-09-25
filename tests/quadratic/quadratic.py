@@ -18,14 +18,13 @@ class MyFunctional(ObjectiveFunctional):
 init_control = NumpyVector(random(5))
 
 obj = MyFunctional()
-prob = Problem(obj, init_control)
+prob = Problem(obj)
 
-
+# Solve with steepest descent
 options = {}
 solver = SteepestDescent(options=options)
-
+sol = solver.solve(prob, init_control)
 print solver
-sol = solver.solve(prob)
 print sol
 
 assert sol["Optimizer"].norm("L2") < 1e-10

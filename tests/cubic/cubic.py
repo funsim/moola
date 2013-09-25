@@ -16,17 +16,15 @@ class MyFunctional(ObjectiveFunctional):
         return NumpyVector(arr**2)
 
 init_control = NumpyVector(random(5))
-
 obj = MyFunctional()
-prob = Problem(obj, init_control)
-
+prob = Problem(obj)
 
 options = {}
 options["gtol"] = 1e-20
 
 solver = SteepestDescent(tol=1e-200, options=options)
 print solver
-sol = solver.solve(prob)
+sol = solver.solve(prob, init_control)
 print sol
 
 assert sol["Optimizer"].norm("L2") < 1e-9

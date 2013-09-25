@@ -36,7 +36,7 @@ class SteepestDescent(object):
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
 
-    def solve(self, problem):
+    def solve(self, problem, m):
         '''
             Arguments:
              * problem: The optimisation problem.
@@ -50,7 +50,6 @@ class SteepestDescent(object):
         s = None
 
         obj = problem.obj
-        m = problem.control
         m_prev = m.__class__(m)
 
         # Start the optimisation loop

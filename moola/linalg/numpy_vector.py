@@ -13,10 +13,6 @@ class NumpyVector(Vector):
 
         self.data = np.array(data)
 
-    def __len__(self):
-        ''' Returns the (local) length. '''
-        return len(self.data)
-
     def __getitem__(self, index):
         ''' Returns the value of the (local) index. '''
         return self.data[index]
@@ -42,3 +38,12 @@ class NumpyVector(Vector):
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
         self.data += a*x.data
+
+    def local_size(self):
+        ''' Returns the (local) size of the vector. '''
+        return len(self.data)
+
+    def size(self):
+        ''' Returns the (local) size of the vector. '''
+        return len(self.data)
+

@@ -1,6 +1,5 @@
 class Problem(object):
 
-	def __init__(self, obj_functional, init_control):
+	def __init__(self, obj_functional):
 		self.obj = obj_functional
-		self.control = init_control
 

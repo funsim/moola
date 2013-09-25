@@ -11,13 +11,25 @@ class Functional(object):
             as x. '''
         raise NotImplementedError, "Functional.gradient is not implemented." 
 
-    def derivative(self, arr):
+    def derivative(self, x):
         ''' Returns the derivative of the object functional at x as a function. '''
-        grad = self.gradient(arr)
+        grad = self.gradient(x)
         def deriv(d):
             return grad.inner(d)
 
         return deriv
+
+    def derivative(self, x):
+        ''' Returns the derivative of the object functional at x as a function. '''
+        grad = self.gradient(x)
+        def deriv(d):
+            return grad.inner(d)
+
+        return deriv
+
+    def Hessian(self, x):
+        ''' Returns the Hessian of the object functional at x as a function. '''
+        raise NotImplementedError, "Functional.Hessian is not implemented." 
 
 class ObjectiveFunctional(Functional):
     pass

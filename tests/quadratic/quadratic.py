@@ -24,8 +24,11 @@ prob = Problem(obj)
 options = {}
 solver = SteepestDescent(options=options)
 sol = solver.solve(prob, init_control)
-print solver
-print sol
-
 assert sol["Optimizer"].norm("L2") < 1e-10
 assert sol["Number of iterations"] == 2
+
+# Solve with Fletcher-Reeves method 
+options = {'gtol': 1e-10}
+solver = FletcherReeves(options=options)
+sol = solver.solve(prob, init_control)
+assert sol["Optimizer"].norm("L2") < 1e-10

@@ -43,6 +43,7 @@ class SteepestDescent(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
+        print self
 
         j = None 
         j_prev = None

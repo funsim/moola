@@ -1,7 +1,6 @@
-from moola.linesearch import FixedLineSearch, ArmijoLineSearch, StrongWolfeLineSearch 
-from moola.problem import Solution
+from optimisation_algorithm import *
 
-class SteepestDescent(object):
+class SteepestDescent(OptimisationAlgorithm):
     """
         Implements the steepest descent method. 
      """
@@ -121,15 +120,3 @@ class SteepestDescent(object):
         sol = Solution({"Optimizer": m,
                         "Number of iterations": it})
         return sol
-
-def get_line_search_method(line_search, line_search_options):
-    if line_search == "strong_wolfe":
-        ls = StrongWolfeLineSearch(**line_search_options)
-    elif line_search == "armijo":
-        ls = ArmijoLineSearch(**line_search_options)
-    elif line_search == "fixed":
-        ls = FixedLineSearch(**line_search_options)
-    else:
-        raise ValueError, "Unknown line search specified. Valid values are 'armijo', 'strong_wolfe' and 'fixed'."
-
-    return ls

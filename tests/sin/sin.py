@@ -1,5 +1,5 @@
 '''
-  Solves min_x 1/3 * (x[0]**3 + x[1]**3 + ... +x[n-1]**3),
+  Solves \sum_x_i sin(x_i)
      x in R^n
 '''
 from moola import *
@@ -9,27 +9,27 @@ from numpy.random import random
 class MyFunctional(ObjectiveFunctional):
     def __call__(self, x):
         arr = x.data
-        return 1/3.*sum(arr**3)
+        return sum(np.sin(arr))
 
     def gradient(self, x):
         arr = x.data
-        return NumpyVector(arr**2)
+        return NumpyVector(np.cos(arr))
 
-init_control = NumpyVector(random(5))
+init_control = NumpyVector(np.ones(1))
 obj = MyFunctional()
 prob = Problem(obj)
 
-options = {}
-options["gtol"] = 1e-20
-
 # Solve the problem with the steepest descent method
+options = {'line_search': 'strong_wolfe'}
+options["gtol"] = 1e-16
+
 solver = SteepestDescent(tol=1e-200, options=options)
 sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm("L2") < 1e-9
+assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50
 
 # Solve the problem with the Fletcher-Reeves method
 solver = FletcherReeves(options=options)
 sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm("L2") < 1e-9
+assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50

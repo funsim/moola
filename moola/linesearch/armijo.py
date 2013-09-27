@@ -63,6 +63,8 @@ class ArmijoLineSearch(LineSearch):
             
         stp = self.start_stp
         finit, ginit = phi_dphi(0)
+        if ginit >= 0:
+            raise Warning, "The gradient is not a descent direction"
         f = finit 
         
         it = 0
@@ -71,7 +73,7 @@ class ArmijoLineSearch(LineSearch):
                 self._adapt(it)
                 return stp
             elif stp < self.stpmin:
-                raise Warning, "sp < stpmin"
+                raise Warning, "The step size dropped below the minimum step size."
 
             stp /= 2.0
             it += 1

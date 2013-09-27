@@ -20,8 +20,7 @@ obj = MyFunctional()
 prob = Problem(obj)
 
 # Solve the problem with the steepest descent method
-options = {'line_search': 'strong_wolfe'}
-options["gtol"] = 1e-16
+options = {'gtol': 1e-16}
 
 solver = SteepestDescent(tol=1e-200, options=options)
 sol = solver.solve(prob, init_control)

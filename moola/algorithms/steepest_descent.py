@@ -12,7 +12,7 @@ class SteepestDescent(OptimisationAlgorithm):
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
-            - line_search: defines the line search algorithm to use. Default: armijo
+            - line_search: defines the line search algorithm to use. Default: strong_wolfe
             - line_search_options: additional options for the line search algorithm. The specific options read the help 
               for the line search algorithm.
             - an optional callback method which is called after every optimisation iteration.
@@ -23,7 +23,7 @@ class SteepestDescent(OptimisationAlgorithm):
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", True)
-        self.line_search = options.get("line_search", "armijo")
+        self.line_search = options.get("line_search", "strong_wolfe")
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)

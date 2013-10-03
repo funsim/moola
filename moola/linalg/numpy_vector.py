@@ -19,7 +19,7 @@ class NumpyVector(Vector):
 
     def __setitem__(self, index, value):
         ''' Sets the value of the (local) index. '''
-        self[index] = value
+        self.data[index] = value
 
     def scale(self, s):
         self.data *= s

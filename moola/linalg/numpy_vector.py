@@ -49,6 +49,6 @@ class NumpyVector(Vector):
         return len(self.data)
 
     def size(self):
-        ''' Returns the (local) size of the vector. '''
+        ''' Returns the (global) size of the vector. '''
         return len(self.data)
 

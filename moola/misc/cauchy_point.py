@@ -61,7 +61,7 @@ def compute_cauchy_point(G, d, x0, l, u):
     # Sort these t values in increasing order
     tbar_arr = tbar.array()
     sort_index = np.argsort(tbar_arr) # 1st element: index to smallest element, ... 
-    t = lambda j: tbar_arr[sort_index[j]] if j >= 0 else 0 # A helper function to access the t values in order defined for -1 <= j < len(sort_index).
+    t = lambda j: tbar_arr[sort_index[j]] if j >= 0 else 0. # A helper function to access the t values in order defined for -1 <= j < len(sort_index).
 
     # Loop over all the tbar's in order until we find the local minimum
     xc = None
@@ -76,7 +76,7 @@ def compute_cauchy_point(G, d, x0, l, u):
 
         xt = x(x0, g, t(j-1), l, u)
 
-        # Check if the minimizer lies within t(j-1) .. t(j)
+        # Check if the minimizer lies within t(j-1) <= t < t(j)
         Gp = G(p)
         df = d.inner(p) + xt.inner(Gp)
         ddf = p.inner(Gp) 
@@ -91,7 +91,9 @@ def compute_cauchy_point(G, d, x0, l, u):
             break
 
     if not xc:
-        raise Warning, 'No Chauchy point found.'
+        # No mininizer was found in 0 <= t < t(len(sort_index)) 
+        xc = x(x0, g, t(len(sort_index)-1), l, u)
+
     return xc
     
 

@@ -17,6 +17,16 @@ class Vector(object):
         ''' Sets the value of the (local) index. '''
         raise NotImplementedError, "Vector.__setitem__ is not implemented"
 
+    def array(self, local=True):
+        ''' Returns the vector as a numpy.array object. If local=False, the 
+        global array must be returned in a distributed environment. '''
+        raise NotImplementedError, "Vector.array is not implemented"
+
+    def set(self, array, local=True):
+        ''' Sets the values of the vector to the values in the numpy.array. 
+        If local=False, the global array must be returned in a distributed environment. '''
+        raise NotImplementedError, "Vector.set is not implemented"
+
     def scale(self, s):
         raise NotImplementedError, "Vector.scale is not implemented"
 

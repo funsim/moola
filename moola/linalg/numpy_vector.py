@@ -21,6 +21,11 @@ class NumpyVector(Vector):
         ''' Sets the value of the (local) index. '''
         self.data[index] = value
 
+    def array(self):
+        ''' Returns the vector as a numpy.array object. If local=False, the 
+        global array must be returned in a distributed environment. '''
+        return self.data
+
     def scale(self, s):
         self.data *= s
 

@@ -1,5 +1,6 @@
 ''' Computes the Cauchy point as descirbed in Wright 1999, section 16.6 '''
 import numpy as np
+from infinity import inf
 
 def P(x, l, u):
     '''
@@ -51,12 +52,12 @@ def compute_cauchy_point(G, d, x0, l, u):
     # Compute values of t when kinks in x(t) occur
     tbar = g.__class__(g)
     for i in range(len(tbar)):
-        if g[i] < 0 and u[i] < float("inf"):
+        if g[i] < 0 and u[i] < inf:
             tbar[i] = (x0[i] - u[i])/g[i]
-        elif g[i] > 0 and l[i] > float("-inf"):
+        elif g[i] > 0 and l[i] > -inf:
             tbar[i] = (x0[i] - l[i])/g[i]
         else:
-            tbar[i] = float("inf")
+            tbar[i] = inf
 
     # Sort these t values in increasing order
     tbar_arr = tbar.array()

@@ -1,4 +1,4 @@
-from vector import Vector
+from moola.linalg import Vector
 import numpy as np
 
 class NumpyVector(Vector):

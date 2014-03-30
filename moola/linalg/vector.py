@@ -28,10 +28,11 @@ class Vector(object):
         raise NotImplementedError, "Vector.set is not implemented"
 
     def scale(self, s):
+        ''' Scales the vector by s. '''
         raise NotImplementedError, "Vector.scale is not implemented"
 
     def inner(self, f):
-        ''' Computes the inner product of the function and f. ''' 
+        ''' Computes the inner product of f and itself. ''' 
         raise NotImplementedError, "Vector.inner is not implemented"
 
     def norm(self, type="l2"):
@@ -39,7 +40,7 @@ class Vector(object):
         raise NotImplementedError, "Vector.norm is not implemented"
 
     def axpy(self, a, x):
-        ''' Adds a*x to the function. '''
+        ''' Adds a*x to the vector. '''
         raise NotImplementedError, "Vector.axpy is not implemented"
     
     def local_size(self):
@@ -57,5 +58,3 @@ class Vector(object):
     def to_petsc(self):
         ''' Returns the PETSc vector. Must only be implemented if has_petsc_support returns True. ''' 
         raise NotImplementedError, "Vector.to_petsc is not implemented"
-
-

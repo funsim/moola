@@ -1,4 +1,4 @@
-from vector import Vector
+from moola.vector import Vector
 import dolfin 
 
 class DolfinVector(Vector):

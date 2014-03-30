@@ -4,7 +4,7 @@ from moola.problem import Solution
 class OptimisationAlgorithm(object):
     '''
     An abstract implementation of an optimisation algorithm.
-    New optimisation should use this is a base class.
+    All implementations of optimisation algorithms should use this is a base class.
     '''
     def __init__(self, tol, options={}, **args):
         ''' Initialises the steepest descent algorithm. '''

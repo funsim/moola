@@ -1,4 +1,4 @@
-from moola.vector import Vector
+from moola.linalg import Vector
 import dolfin 
 
 class DolfinVector(Vector):
@@ -27,15 +27,17 @@ class DolfinVector(Vector):
         return self.data.vector().array()
 
     def scale(self, s):
-        self.data[:] = s*self.data.array()
+        v = self.data.vector()
+        v *= s
 
-    def inner(self, data):
+    def inner(self, v):
         ''' Computes the inner product of the function and data. ''' 
-        return dolfin.inner(self.data, data)*dolfin.dx
+        r = dolfin.inner(self.data, v.data)*dolfin.dx
+        return dolfin.assemble(r)
 
     def norm(self, type="L2"):
         ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
-        elif type=="L2":
+        if type=="L2":
             return dolfin.norm(self.data, "L2")
         elif type=="Linf":
             return dolfin.norm(self.data, "linf")
@@ -44,7 +46,8 @@ class DolfinVector(Vector):
 
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
-        self.data.axpy(a, x)
+        v = self.data.vector()
+        v.axpy(a, x.data.vector())
 
     def local_size(self):
         ''' Returns the (local) size of the vector. '''

@@ -22,6 +22,3 @@ class Functional(object):
     def Hessian(self, x):
         ''' Returns the Hessian of the object functional at x as a function. '''
         raise NotImplementedError, "Functional.Hessian is not implemented." 
-
-class ObjectiveFunctional(Functional):
-    pass

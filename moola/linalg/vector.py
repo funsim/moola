@@ -1,14 +1,7 @@
 class Vector(object):
     ''' An abstract implementation for vectors. '''
 
-    def __init__(self):
-        ''' Creates a new Vector with (a deep-copy of) the provided data. '''
-        self.data = data
-
-    def __len__(self):
-        ''' Returns the (local) size. '''
-        return self.local_size()
-
+    ############# To be implement by overloaded class #####################
     def __getitem__(self, index):
         ''' Returns the value of the (local) index. '''
         raise NotImplementedError, "Vector.__getitem__ is not implemented"
@@ -58,3 +51,22 @@ class Vector(object):
     def to_petsc(self):
         ''' Returns the PETSc vector. Must only be implemented if has_petsc_support returns True. ''' 
         raise NotImplementedError, "Vector.to_petsc is not implemented"
+
+
+    ############# Standard methods  #####################
+    def __init__(self):
+        ''' Creates a new Vector with (a deep-copy of) the provided data. '''
+        self.data = data
+
+    def __mul__(self, a):
+        ''' Scales the vector by a. '''
+        self.scale(a)
+
+    def __add__(self, v):
+        ''' Adds v to the vector. '''
+        self.axpy(1.0, v)
+
+    def __len__(self):
+        ''' Returns the (local) size. '''
+        return self.local_size()
+

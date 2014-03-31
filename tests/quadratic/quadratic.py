@@ -6,7 +6,7 @@ from moola import *
 import numpy as np
 from numpy.random import random
 
-class MyFunctional(ObjectiveFunctional):
+class MyFunctional(Functional):
     def __call__(self, x):
         arr = x.data
         return 0.5*sum(arr**2)

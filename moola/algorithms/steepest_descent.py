@@ -53,7 +53,6 @@ class SteepestDescent(OptimisationAlgorithm):
 
         j = None 
         j_prev = None
-        s = None
 
         obj = problem.obj
         m_prev = m.__class__(m)
@@ -67,6 +66,7 @@ class SteepestDescent(OptimisationAlgorithm):
                 j = obj(m)
             grad = obj.gradient(m) 
 
+
             if self.hooks.has_key("before_iteration"):
                 self.hooks["before_iteration"](j, grad)
 
@@ -74,7 +74,7 @@ class SteepestDescent(OptimisationAlgorithm):
                 print "Iteration %i\tJ = %s\t|dJ| = %s" % (it, j, grad.norm("L2"))
 
             # Check for convergence                                                                        # Reason:
-            if not ((self.gtol    == None or s == None or s.norm("L2") > self.gtol) and                    # ||\nabla j|| < gtol
+            if not ((self.gtol    == None or grad.norm("L2") > self.gtol) and                              # ||\nabla j|| < gtol
                     (self.tol     == None or j == None or j_prev == None or abs(j-j_prev)) > self.tol and  # \Delta j < tol
                     (self.maxiter == None or it < self.maxiter)):                                          # maximum iteration reached
                 break

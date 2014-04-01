@@ -32,3 +32,4 @@ options = {'gtol': 1e-10}
 solver = FletcherReeves(options=options)
 sol = solver.solve(prob, init_control)
 assert sol["Optimizer"].norm("L2") < 1e-10
+assert sol["Number of iterations"] == 1

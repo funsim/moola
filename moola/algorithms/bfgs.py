@@ -1,26 +1,37 @@
 from optimisation_algorithm import *
 
-class BFGSOperator(LinearOperator):
+class BFGSOperator(object):
+
     def __init__(self, sk, yk, Hk):
-        self.sk = sk.copy()
-        self.yk = yk.copy()
+        self.sk = sk
+        self.yk = yk
         self.Hk = Hk
 
-    def call(self, d):
-        rhok = 1. / (yk * sk)
+    def __call__(self, d):
+        sk = self.sk 
+        yk = self.yk 
+        Hk = self.Hk
 
-        a1 = Hk( (d - rhok * d(sk) * yk )
+        rhok = 1. / yk(sk)
+
+        a1 = Hk( d - rhok * d(sk) * yk )
         a2 = a1 - rhok * ( yk(a1) ) * sk 
         a3 = rhok * d(sk) * sk
+
         return a2 + a3
 
 
+class RieszMap(object):
+
+    def __call__(self, d): 
+        return d.riesz_representation()
         
+
 class BFGS(OptimisationAlgorithm):
     """
         Implements the BFGS method. 
      """
-    def __init__(self, problem, tol=1e-4, H_init = 1, options={}, hooks={}, **args):
+    def __init__(self, tol=1e-4, H_init=RieszMap(), options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
@@ -41,7 +52,6 @@ class BFGS(OptimisationAlgorithm):
             - after_iteration: Is called after each each iteration.
           '''
 
-        self.problem = problem
         # Set the default options values
         self.tol = tol
         self.H_init = H_init
@@ -61,7 +71,19 @@ class BFGS(OptimisationAlgorithm):
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
 
-    def solve(self, x_init):
+    def display(self):
+        print "disp be written"
+
+
+    def check_convergence(self):
+        print "check_convergergence to be written"
+        return False, ""
+
+    def perform_line_search(self, xk, pk):
+        print "perform_line_search to be written"
+        return 1.
+
+    def solve(self, problem, x_init):
         '''
             Arguments:
              * problem: The optimisation problem.
@@ -69,44 +91,45 @@ class BFGS(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
+        obj = problem.obj
+
         Hk = self.H_init
         xk = x_init.copy()
-
-        obj = self.problem.obj
-        
+        dJ_old = obj.derivative(xk)
 
         # Start the optimisation loop
         it = 0
         while True:
-            hook("before_iteration", j, grad)
-            disp()
+            #hook("before_iteration", j, grad)
+            self.display()
 
-            conv, reason = check_convergergence()
+            conv, reason = self.check_convergence()
             if conv is True:
                 break
             
-            # evaluate the functional at the current iterate
-            dJ, gradJ = obj.derivative_and_gradient(xk)
-            
             # compute search direction
-            pk =  - Hk * dJ
+            pk = - Hk(dJ_old)
             
             # do a line search
-            ak = perform_line_search(xk, pk)
+            ak = self.perform_line_search(xk, pk)
             
             sk = ak * pk
             xk += sk
 
-            yk = gradJ - gradJ_prev
+            # evaluate gradient at the new point
+            dJ = obj.derivative(xk)
+            yk = dJ - dJ_old
+            
             
             # update the approximate Hessian
             Hk = BFGSOperator(sk, yk, Hk)
             
+            dJ_old = dJ
             it += 1
 
-            hook("after_iteration", j, grad)
+            #hook("after_iteration", j, grad)
 
-        disp()
+        self.display()
 
         return xk
 

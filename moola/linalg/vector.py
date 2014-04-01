@@ -58,15 +58,36 @@ class Vector(object):
         ''' Creates a new Vector with (a deep-copy of) the provided data. '''
         self.data = data
 
-    def __mul__(self, a):
+    def __lmul__(self, a):
         ''' Scales the vector by a. '''
-        self.scale(a)
+        c = self.copy()
+        c.scale(a)
+        return c
+
+    __rmul__ = __lmul__
 
     def __add__(self, v):
         ''' Adds v to the vector. '''
-        self.axpy(1.0, v)
+        c = self.copy()
+        c.axpy(1.0, v)
+        return c
+
+    def __sub__(self, v):
+        ''' Adds v to the vector. '''
+        c = self.copy()
+        c.axpy(-1.0, v)
+        return c
+
+    def __neg__(self):
+        ''' Negates the vector. '''
+        c = self.copy()
+        c.scale(-1)
+        return c
 
     def __len__(self):
         ''' Returns the (local) size. '''
         return self.local_size()
 
+    def copy(self):
+        ''' Makes a deep-copy of the vector. '''
+        return self.__class__(self)

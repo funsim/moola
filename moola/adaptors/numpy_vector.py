@@ -31,7 +31,7 @@ class NumpyVector(Vector):
 
     def inner(self, data):
         ''' Computes the inner product of the function and data. ''' 
-        return np.dot(self.data, data)
+        return float(np.dot(self.data, data))
 
     def norm(self, type="l2"):
         ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 

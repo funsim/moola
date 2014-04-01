@@ -1,6 +1,6 @@
 from problem import Problem, Functional
 from linalg import Vector
-from algorithms import SteepestDescent, FletcherReeves
+from algorithms import SteepestDescent, FletcherReeves, BFGS
 from misc.infinity import inf
 
 from adaptors.numpy_vector import NumpyVector

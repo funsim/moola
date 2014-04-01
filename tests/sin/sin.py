@@ -32,3 +32,7 @@ solver = FletcherReeves(options=options)
 sol = solver.solve(prob, init_control)
 assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50
+
+# Solve the problem with the BFGS method
+#solver = BFGS(options=options)
+#sol = solver.solve(prob, init_control)

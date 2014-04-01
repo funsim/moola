@@ -71,10 +71,10 @@ class SteepestDescent(OptimisationAlgorithm):
                 self.hooks["before_iteration"](j, grad)
 
             if self.disp:
-                print "Iteration %i\tJ = %s\t|dJ| = %s" % (it, j, grad.norm("L2"))
+                print "Iteration %i\tJ = %s\t|dJ| = %s" % (it, j, grad.norm())
 
             # Check for convergence                                                                        # Reason:
-            if not ((self.gtol    == None or grad.norm("L2") > self.gtol) and                              # ||\nabla j|| < gtol
+            if not ((self.gtol    == None or grad.norm() > self.gtol) and                                  # ||\nabla j|| < gtol
                     (self.tol     == None or j == None or j_prev == None or abs(j-j_prev)) > self.tol and  # \Delta j < tol
                     (self.maxiter == None or it < self.maxiter)):                                          # maximum iteration reached
                 break
@@ -121,7 +121,7 @@ class SteepestDescent(OptimisationAlgorithm):
 
         # Print the reason for convergence
         if self.disp:
-            n = grad.norm("L2")
+            n = grad.norm()
             if self.maxiter != None and iter <= self.maxiter:
                 print "\nMaximum number of iterations reached.\n"
             elif self.gtol != None and n <= self.gtol: 

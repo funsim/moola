@@ -55,63 +55,47 @@ class SteepestDescent(OptimisationAlgorithm):
         j_prev = None
 
         obj = problem.obj
-        m_prev = m.__class__(m)
 
         # Start the optimisation loop
         it = 0
         while True:
 
-            # Evaluate the functional at the current iterate
-            if j == None:
-                j = obj(m)
             grad = obj.gradient(m) 
-
 
             if self.hooks.has_key("before_iteration"):
                 self.hooks["before_iteration"](j, grad)
-
-            
 
             # Check for convergence
             if self.check_convergence(it, j, j_prev, grad) != 0:
                 break
             self.display(it, j, j_prev, grad)
-            # Compute slope at current point
-            djs = -grad.inner(grad)
-
-            if djs >= 0:
-                raise RuntimeError, "Negative gradient is not a descent direction. Is your gradient correct?" 
 
             # Define the real-valued reduced function in the s-direction 
             def phi(alpha):
-                tmpm = m_prev.__class__(m_prev)
-                tmpm.axpy(-alpha, grad)
+                tmp = m.copy()
+                tmp.axpy(-alpha, grad)
 
-                return obj(tmpm)
+                return obj(tmp)
 
             def phi_dphi(alpha):
-                tmpm = m_prev.__class__(m_prev)
-                tmpm.axpy(-alpha, grad)
+                tmp = m.copy()
+                tmp.axpy(-alpha, grad)
 
-                p = phi(alpha) 
-                djs = -obj.derivative(tmpm)(grad)
-                return p, djs
+                j = obj(tmp) 
+                djs = -obj.derivative(tmp)(grad)
+
+                return j, djs
 
             alpha = self.ls.search(phi, phi_dphi)
 
-            # update m and j_new
-            m = m_prev.__class__(m_prev)
+            # update m and j
+            m = m.copy()  # FIXME: Why do I need this
             m.axpy(-alpha, grad)
-            j_new = phi(alpha)
-
-            # Update the current iterate
-            m_prev = m.__class__(m)
             j_prev = j
-            j = j_new
-            it += 1
+            j = obj(m)
 
-            if self.callback is not None:
-                self.callback(j, -grad, m)
+            # Update the iterate counter
+            it += 1
 
             if self.hooks.has_key("after_iteration"):
                 self.hooks["after_iteration"](j, grad)

@@ -5,12 +5,6 @@ class NumpyVector(Vector):
     ''' An implementation for vectors based on numpy arrays. '''
 
     def __init__(self, data):
-        ''' Creates a new NumpyVector with a deep-copy of the 
-        underlying data. The parameter 'data' must be 
-        a NumpyVector or a numpy.array. '''
-        if isinstance(data, NumpyVector):
-            data = data.data
-
         self.data = np.array(data)
 
     def __getitem__(self, index):
@@ -57,6 +51,9 @@ class NumpyVector(Vector):
     def size(self):
         ''' Returns the (global) size of the vector. '''
         return len(self.data)
+
+    def copy(self):
+        return NumpyVector(self.data.copy())
 
 class NumpyLinearFunctional(NumpyVector):
 

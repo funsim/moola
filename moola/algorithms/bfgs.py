@@ -54,7 +54,7 @@ class BFGS(OptimisationAlgorithm):
     """
         Implements the BFGS method. 
      """
-    def __init__(self, tol=1e-4, Hinit=1, options={}, hooks={}, **args):
+    def __init__(self, Hinit=1, options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
@@ -76,7 +76,7 @@ class BFGS(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        self.tol = tol
+        self.tol = options.get("tol", 1e-4)
         self.Hinit = Hinit
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
@@ -98,13 +98,37 @@ class BFGS(OptimisationAlgorithm):
         print "disp be written"
 
 
-    def check_convergence(self):
-        print "check_convergergence to be written"
-        return False, ""
+    def check_convergence(self, it, J, oldJ, g):
+        reasons = {1: 'Maximum number of iterations reached.',
+                   2: 'Relative gain below tol.',
+                   3: 'Norm of the derivative below gtol.'}
+        r = 0
+        if it > self.maxiter:
+            r = 1
+        if J != None and oldJ != None and oldJ-J < self.tol != None:
+            r = 2
+        if g!= None and g.norm() < self.gtol != None:
+            r = 3
+        if r != 0:
+            return True, reasons[r]
+        return False, None
 
     def perform_line_search(self, xk, pk):
-        print "perform_line_search to be written"
-        return 1.
+        def phi(alpha):
+            tmpx = xk.__class__(xk)
+            tmpx.axpy(alpha, pk)
+            return self.problem.obj(tmpx)
+
+        def phi_dphi(alpha):
+            tmpx = xk.__class__(xk)
+            tmpx.axpy(alpha, pk)
+            p = phi(alpha) 
+            djs = self.problem.obj.derivative(tmpx)(pk)
+            return p, djs
+
+        ak = self.ls.search(phi, phi_dphi)
+        return float(ak) # numpy.float64 does not play nice with moola types
+        
 
     def solve(self, problem, xinit):
         '''
@@ -114,19 +138,20 @@ class BFGS(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
+        self.problem = problem
         obj = problem.obj
 
         Hk = LHess(self.Hinit)
         xk = xinit.copy()
         dJ_old = obj.derivative(xk)
-
+        J, oldJ= None, None
         # Start the optimisation loop
         it = 0
         while True:
             #hook("before_iteration", j, grad)
             self.display()
 
-            conv, reason = self.check_convergence()
+            conv, reason = self.check_convergence(it, J, oldJ, dJ_old)
             if conv is True:
                 break
             
@@ -135,10 +160,9 @@ class BFGS(OptimisationAlgorithm):
             
             # do a line search and update
             ak = self.perform_line_search(xk, pk)            
-            sk = ak * pk 
+            sk = ak * pk
             xk += sk
-            #from IPython import embed; embed()
-            print xk.data[0]
+            J, oldJ = obj(xk), J # FIXME: this is horrible!
 
             # evaluate gradient at the new point
             dJ = obj.derivative(xk)
@@ -150,12 +174,10 @@ class BFGS(OptimisationAlgorithm):
             dJ_old = dJ
             it += 1
 
-            if it > 15:
-                break
-            
 
         self.display()
 
-        return {"Optimizer" :xk,
+        ret =  {"Optimizer" :xk,
                 "Number of iterations": it}
+        return ret
 

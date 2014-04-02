@@ -19,7 +19,7 @@ class SteepestDescent(OptimisationAlgorithm):
             - line_search_options: additional options for the line search algorithm. The specific options read the help 
               for the line search algorithm.
             - an optional callback method which is called after every optimisation iteration.
-         * hooks: A dictionariy containing user-defined "hook" functions that are called at certain events during the optimisation.
+         * hooks: A dictionary containing user-defined "hook" functions that are called at certain events during the optimisation.
             - before_iteration: Is called after before each iteration.
             - after_iteration: Is called after each each iteration.
           '''

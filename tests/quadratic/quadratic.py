@@ -11,9 +11,9 @@ class MyFunctional(Functional):
         arr = x.data
         return 0.5*sum(arr**2)
 
-    def gradient(self, x):
+    def derivative(self, x):
         arr = x.data
-        return NumpyVector(arr)
+        return NumpyLinearFunctional(arr)
 
 init_control = NumpyVector(random(5))
 

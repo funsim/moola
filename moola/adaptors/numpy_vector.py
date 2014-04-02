@@ -29,16 +29,22 @@ class NumpyVector(Vector):
     def scale(self, s):
         self.data *= s
 
+    def dot(self, data):
+        ''' Computes the dot product of the function and data. ''' 
+        return float(np.dot(self.data, data))
+
     def inner(self, data):
         ''' Computes the inner product of the function and data. ''' 
         return float(np.dot(self.data, data))
 
-    def norm(self, type="l2"):
+    def norm(self, type="L2"):
         ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
         if type=="L1":
             return sum(abs(self.data))
         elif type=="L2":
             return np.sqrt(sum(self.data**2))
+        else:
+            raise ValueError, "Unkown norm"
 
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
@@ -51,3 +57,11 @@ class NumpyVector(Vector):
     def size(self):
         ''' Returns the (global) size of the vector. '''
         return len(self.data)
+
+class NumpyLinearFunctional(NumpyVector):
+
+    def __call__(self, d):
+        return self.dot(d)
+
+    def riesz_representation(self):
+        return self

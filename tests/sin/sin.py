@@ -11,9 +11,9 @@ class MyFunctional(Functional):
         arr = x.data
         return sum(np.sin(arr))
 
-    def gradient(self, x):
+    def derivative(self, x):
         arr = x.data
-        return NumpyVector(np.cos(arr))
+        return NumpyLinearFunctional(np.cos(arr))
 
 init_control = NumpyVector(np.ones(1))
 obj = MyFunctional()

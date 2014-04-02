@@ -54,8 +54,8 @@ class Vector(object):
 
 
     ############# Standard methods  #####################
-    def __init__(self):
-        ''' Creates a new Vector with (a deep-copy of) the provided data. '''
+    def __init__(self, data):
+        ''' Creates a new Vector.'''
         self.data = data
 
     def __lmul__(self, a):
@@ -89,5 +89,6 @@ class Vector(object):
         return self.local_size()
 
     def copy(self):
-        ''' Makes a deep-copy of the vector. '''
-        return self.__class__(self)
+        ''' Returns a deep-copy of the vector. '''
+        d = self.data.__class__(self.data)
+        return Vector(d)

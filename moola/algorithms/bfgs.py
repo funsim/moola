@@ -1,37 +1,60 @@
 from optimisation_algorithm import *
 
-class BFGSOperator(object):
 
-    def __init__(self, sk, yk, Hk):
-        self.sk = sk
-        self.yk = yk
-        self.Hk = Hk
+class  LinearOperator(object):
+    def __init__(self, matvec):
+        self.matvec = matvec
+    def __mul__(self,x):
+        return self.matvec(x)
+    def __rmul__(self,x):
+        return NotImplemented
+    def __call__(self,x):
+        return self.matvec(x)
 
-    def __call__(self, d):
-        sk = self.sk 
-        yk = self.yk 
-        Hk = self.Hk
-
-        rhok = 1. / yk(sk)
-
-        a1 = Hk( d - rhok * d(sk) * yk )
-        a2 = a1 - rhok * ( yk(a1) ) * sk 
-        a3 = rhok * d(sk) * sk
-
-        return a2 + a3
-
-
-class RieszMap(object):
-
-    def __call__(self, d): 
-        return d.riesz_representation()
         
+
+class LHess(LinearOperator):
+    '''
+    This class implements the limit-memory BFGS approximation of the inverse Hessian.
+    '''
+    def __init__(self, Hinit=1, max_len = 10):
+        self.Hinit = Hinit
+        self.max_len = max_len
+        self.y   = []
+        self.s   = []
+        self.rho = []
+    def __len__(self):
+        assert( len(self.y) == len(self.s) )
+        return len(self.y)+1
+    def __getitem__(self,k):
+        if k==0:
+            return self.Hinit
+        return (self.rho[k-1], self.y[k-1], self.s[k-1])
+    def update(self,yk, sk):
+        if len(self) == self.max_len:
+            self.y   = self.y[1:]
+            self.s   = self.s[1:]
+            self.rho = self.rho[1:]
+        self.y.append(yk)
+        self.s.append(sk)
+        self.rho.append( yk.dot(sk) )
+    def matvec(self,x,k = -1):
+        if k == -1:
+            k = len(self)-1
+        if k == 0:
+            return self.Hinit * x
+        rhok, yk, sk = self[k]     
+        t = x - rhok * x.dot(sk) * yk
+        t = self.matvec(t, k-1)
+        t = t - rhok * yk.dot(t) * sk
+        t = t + rhok * x.dot(sk) * sk
+        return t
 
 class BFGS(OptimisationAlgorithm):
     """
         Implements the BFGS method. 
      """
-    def __init__(self, tol=1e-4, H_init=RieszMap(), options={}, hooks={}, **args):
+    def __init__(self, tol=1e-4, Hinit=1, options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
@@ -54,7 +77,7 @@ class BFGS(OptimisationAlgorithm):
 
         # Set the default options values
         self.tol = tol
-        self.H_init = H_init
+        self.Hinit = Hinit
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", True)
@@ -83,7 +106,7 @@ class BFGS(OptimisationAlgorithm):
         print "perform_line_search to be written"
         return 1.
 
-    def solve(self, problem, x_init):
+    def solve(self, problem, xinit):
         '''
             Arguments:
              * problem: The optimisation problem.
@@ -93,8 +116,8 @@ class BFGS(OptimisationAlgorithm):
          '''
         obj = problem.obj
 
-        Hk = self.H_init
-        xk = x_init.copy()
+        Hk = LHess(self.Hinit)
+        xk = xinit.copy()
         dJ_old = obj.derivative(xk)
 
         # Start the optimisation loop
@@ -108,28 +131,31 @@ class BFGS(OptimisationAlgorithm):
                 break
             
             # compute search direction
-            pk = - Hk(dJ_old)
+            pk = - (Hk * dJ_old)
             
-            # do a line search
-            ak = self.perform_line_search(xk, pk)
-            
-            sk = ak * pk
+            # do a line search and update
+            ak = self.perform_line_search(xk, pk)            
+            sk = ak * pk 
             xk += sk
+            #from IPython import embed; embed()
+            print xk.data[0]
 
             # evaluate gradient at the new point
             dJ = obj.derivative(xk)
             yk = dJ - dJ_old
             
-            
             # update the approximate Hessian
-            Hk = BFGSOperator(sk, yk, Hk)
-            
+            Hk.update(yk, sk)
+
             dJ_old = dJ
             it += 1
 
-            #hook("after_iteration", j, grad)
+            if it > 15:
+                break
+            
 
         self.display()
 
-        return xk
+        return {"Optimizer" :xk,
+                "Number of iterations": it}
 

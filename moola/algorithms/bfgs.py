@@ -17,9 +17,9 @@ class LHess(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit=1, max_len = 10):
+    def __init__(self, Hinit=1, mem_lim = 20):
         self.Hinit = Hinit
-        self.max_len = max_len
+        self.mem_lim = mem_lim
         self.y   = []
         self.s   = []
         self.rho = []
@@ -31,7 +31,9 @@ class LHess(LinearOperator):
             return self.Hinit
         return (self.rho[k-1], self.y[k-1], self.s[k-1])
     def update(self,yk, sk):
-        if len(self) == self.max_len:
+        if self.mem_lim == 0:
+            return
+        if len(self) == self.mem_lim+1:
             self.y   = self.y[1:]
             self.s   = self.s[1:]
             self.rho = self.rho[1:]
@@ -77,15 +79,18 @@ class BFGS(OptimisationAlgorithm):
 
         # Set the default options values
         self.tol = options.get("tol", 1e-4)
-        self.Hinit = Hinit
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", True)
+        self.disp = options.get("disp", 2)
         self.line_search = options.get("line_search", "strong_wolfe")
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
         self.hooks = hooks
+
+        # method-specific settings:
+        self.Hinit = Hinit
+        self.mem_lim  = options.get("mem_lim", 20)
 
     def __str__(self):
         s = "BFGS method.\n"
@@ -93,25 +98,6 @@ class BFGS(OptimisationAlgorithm):
         s += "Line search:\t\t %s\n" % self.line_search 
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
-
-    def display(self):
-        print "disp be written"
-
-
-    def check_convergence(self, it, J, oldJ, g):
-        reasons = {1: 'Maximum number of iterations reached.',
-                   2: 'Relative gain below tol.',
-                   3: 'Norm of the derivative below gtol.'}
-        r = 0
-        if it > self.maxiter:
-            r = 1
-        if J != None and oldJ != None and oldJ-J < self.tol != None:
-            r = 2
-        if g!= None and g.norm() < self.gtol != None:
-            r = 3
-        if r != 0:
-            return True, reasons[r]
-        return False, None
 
     def perform_line_search(self, xk, pk):
         def phi(alpha):
@@ -138,30 +124,32 @@ class BFGS(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
+        if self.disp>0 : print self
         self.problem = problem
         obj = problem.obj
 
-        Hk = LHess(self.Hinit)
+        Hk = LHess(self.Hinit, mem_lim = self.mem_lim)
         xk = xinit.copy()
         dJ_old = obj.derivative(xk)
-        J, oldJ= None, None
+        J  = obj(xk)                 # TODO: combine in one call
+        oldJ = None
         # Start the optimisation loop
         it = 0
         while True:
             #hook("before_iteration", j, grad)
-            self.display()
-
-            conv, reason = self.check_convergence(it, J, oldJ, dJ_old)
-            if conv is True:
-                break
             
+
+            if self.check_convergence(it, J, oldJ, dJ_old) != 0:
+                break
+            self.display(it, J, oldJ, dJ_old)
             # compute search direction
             pk = - (Hk * dJ_old)
-            
+
             # do a line search and update
             ak = self.perform_line_search(xk, pk)            
             sk = ak * pk
             xk += sk
+            
             J, oldJ = obj(xk), J # FIXME: this is horrible!
 
             # evaluate gradient at the new point
@@ -175,9 +163,10 @@ class BFGS(OptimisationAlgorithm):
             it += 1
 
 
-        self.display()
-
-        ret =  {"Optimizer" :xk,
+        
+        self.display(it, J, oldJ, dJ_old)
+        sol =  {"Optimizer" :xk,
                 "Number of iterations": it}
-        return ret
+        #from IPython import embed; embed()
+        return sol
 

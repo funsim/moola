@@ -28,7 +28,7 @@ class SteepestDescent(OptimisationAlgorithm):
         self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", True)
+        self.disp = options.get("disp", 2)
         self.line_search = options.get("line_search", "strong_wolfe")
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
@@ -50,7 +50,7 @@ class SteepestDescent(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
-
+        if self.disp >0 : print self
         j = None 
         j_prev = None
 
@@ -70,15 +70,12 @@ class SteepestDescent(OptimisationAlgorithm):
             if self.hooks.has_key("before_iteration"):
                 self.hooks["before_iteration"](j, grad)
 
-            if self.disp:
-                print "Iteration %i\tJ = %s\t|dJ| = %s" % (it, j, grad.norm())
+            
 
-            # Check for convergence                                                                        # Reason:
-            if not ((self.gtol    == None or grad.norm() > self.gtol) and                                  # ||\nabla j|| < gtol
-                    (self.tol     == None or j == None or j_prev == None or abs(j-j_prev)) > self.tol and  # \Delta j < tol
-                    (self.maxiter == None or it < self.maxiter)):                                          # maximum iteration reached
+            # Check for convergence
+            if self.check_convergence(it, j, j_prev, grad) != 0:
                 break
-
+            self.display(it, j, j_prev, grad)
             # Compute slope at current point
             djs = -grad.inner(grad)
 
@@ -120,15 +117,7 @@ class SteepestDescent(OptimisationAlgorithm):
                 self.hooks["after_iteration"](j, grad)
 
         # Print the reason for convergence
-        if self.disp:
-            n = grad.norm()
-            if self.maxiter != None and iter <= self.maxiter:
-                print "\nMaximum number of iterations reached.\n"
-            elif self.gtol != None and n <= self.gtol: 
-                print "\nTolerance reached: |dJ| < gtol in %i iterations.\n" % it
-            elif self.tol != None and j_prev != None and abs(j-j_prev) <= self.tol:
-                print "\nTolerance reached: |delta j| < tol in %i interations.\n" % it
-
+        self.display(it, j, j_prev, grad)
         sol = Solution({"Optimizer": m,
                         "Number of iterations": it})
         return sol

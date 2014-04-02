@@ -25,7 +25,7 @@ class FletcherReeves(OptimisationAlgorithm):
 	self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", True)
+        self.disp = options.get("disp", 2)
         self.line_search = options.get("line_search", "strong_wolfe")
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
@@ -38,47 +38,27 @@ class FletcherReeves(OptimisationAlgorithm):
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
 
-    def test_convergence(self, it, j, j_prev, dj, reason=False):
-	''' Test if the optimisation iteration has converged. '''
-
-	converged = True
-
-	if self.gtol != None and dj != None and dj.norm("L2") < self.gtol:
-	    reason = "Tolerance reached: |dJ| < gtol." 
-	elif self.tol != None and j != None and j_prev != None and abs(j-j_prev) < self.tol:
-            reason = "Tolerance reached: |delta j| < tol."
-	elif self.maxiter != None and it > self.maxiter:
-	    reason = "Maximum number of iterations reached."
-	else:
-	    reason = None
-	    converged = False
-
-	if reason:
-	    return reason
-	else:
-	    return converged
-
     def do_linesearch(self, obj, m, s):
         ''' Performs a linesearch on obj starting from m in direction s. '''
 
-	# Define the real-valued reduced function in the s-direction 
-	def phi(alpha):
-	    tmpm = m.__class__(m)
-	    tmpm.axpy(alpha, s) 
+        # Define the real-valued reduced function in the s-direction 
+        def phi(alpha):
+            tmpm = m.__class__(m)
+            tmpm.axpy(alpha, s) 
 
-	    return obj(tmpm)
+            return obj(tmpm)
 
-	def phi_dphi(alpha):
-	    tmpm = m.__class__(m)
-	    tmpm.axpy(alpha, s) 
+        def phi_dphi(alpha):
+            tmpm = m.__class__(m)
+            tmpm.axpy(alpha, s) 
 
-	    p = phi(alpha) 
-	    djs = obj.derivative(tmpm)(s)
-	    return p, djs
+            p = phi(alpha) 
+            djs = obj.derivative(tmpm)(s)
+            return p, djs
 
-	# Perform the line search
-	alpha = self.ls.search(phi, phi_dphi)
-	return alpha
+        # Perform the line search
+        alpha = self.ls.search(phi, phi_dphi)
+        return alpha
 
     def solve(self, problem, m):
         ''' Solves the optimisation problem with the Fletcher-Reeves method. 
@@ -89,42 +69,38 @@ class FletcherReeves(OptimisationAlgorithm):
               * solution: The solution to the optimisation problem 
          '''
         print self
-
         obj = problem.obj
 
-	dj = obj.derivative(m)
-	dj_grad = obj.gradient(m)
-	b = dj(dj_grad)
+        dj = obj.derivative(m)
+        dj_grad = obj.gradient(m)
+        b = dj(dj_grad)
 
-	s = dj_grad.__class__(dj_grad)
-	s.scale(-1)
+        s = dj_grad.__class__(dj_grad) # search direction
+        s.scale(-1)
 
         # Start the optimisation loop
         it = 0
 
-	while not self.test_convergence(it, None, None, dj_grad):
-	    if self.disp:
-		print "Iteration %i\t|dJ| = %s" % (it, dj_grad.norm("L2"))
-
-	    # Perform the line search
-	    alpha = self.do_linesearch(obj, m, s)
+        while self.check_convergence(it, None, None, dj_grad) == 0:
+            self.display(it, None, None, dj_grad)
+            # Perform the line search
+            alpha = self.do_linesearch(obj, m, s)
 
             # Update m
             m.axpy(alpha, s)
 
             # Reevaluate the gradient
-	    dj = obj.derivative(m)
-	    dj_grad = obj.gradient(m)
-	    s = s.__class__(dj_grad)
+            dj = obj.derivative(m)
+            dj_grad = obj.gradient(m)
 
             # Compute the relaxation value
             b_old = b 
-	    b = dj(dj_grad)
-	    beta = b/b_old
+            b = dj(dj_grad)
+            beta = b/b_old
 
             # Update the search direction
-	    s.scale(beta)
-	    s.axpy(-1, dj_grad)
+            s.scale(beta)
+            s.axpy(-1, dj_grad)
 
             it += 1
 
@@ -132,8 +108,7 @@ class FletcherReeves(OptimisationAlgorithm):
                 self.callback(None, s, m)
 
         # Print the reason for convergence
-        print self.test_convergence(it, None, None, dj_grad, reason=True)
-
+        self.display(it, None, None, dj_grad)
         sol = Solution({"Optimizer": m,
-                        "Number of iterations": it})
+                            "Number of iterations": it})
         return sol

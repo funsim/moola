@@ -20,19 +20,25 @@ obj = MyFunctional()
 prob = Problem(obj)
 
 # Solve the problem with the steepest descent method
-options = {'gtol': 1e-16}
+options = {'gtol': 1e-16, 'tol': None, 'mem_lim':0}
 
 solver = SteepestDescent(tol=1e-200, options=options)
-sol = solver.solve(prob, init_control)
+sol = solver.solve(prob, init_control.copy())
 assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50
+
+print '\n'
 
 # Solve the problem with the Fletcher-Reeves method
 solver = FletcherReeves(options=options)
-sol = solver.solve(prob, init_control)
+sol = solver.solve(prob, init_control.copy())
 assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50
 
+print '\n'
+
 # Solve the problem with the BFGS method
-#solver = BFGS(options=options)
-#sol = solver.solve(prob, init_control)
+solver = BFGS(options=options)
+sol = solver.solve(prob, init_control.copy())
+assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
+assert sol["Number of iterations"] < 50

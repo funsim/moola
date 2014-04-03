@@ -4,7 +4,7 @@ from numpy import zeros
 from dolfin import info_red
 
 class StrongWolfeLineSearch(LineSearch):
-    def __init__(self, ftol = 1e-4, gtol = 0.9, xtol = 1e-1, start_stp = 1.0, stpmin = None, stpmax = None, verify = False, ignore_warnings = True):
+    def __init__(self, ftol=1e-4, gtol=0.9, xtol=1e-1, start_stp=1.0, stpmin = None, stpmax="automatic", verify=False, ignore_warnings=False):
         '''
         This class implements a line search algorithm whose steps 
         satisfy the strong Wolfe conditions (i.e. they satisfies a 
@@ -78,11 +78,15 @@ class StrongWolfeLineSearch(LineSearch):
         # Compute an estimate for the maximum step size 
         if not self.stpmin:
             self.stpmin = 0.
-        if not self.stpmax:
-            self.stpmax = max(4*min(self.start_stp, 1.0), 0.1*f/(-g*self.ftol))
+        if self.stpmax == "automatic":
+            stpmax = max(4*min(self.start_stp, 1.0), 0.1*f/(-g*self.ftol))
+        else:
+            stpmax = self.stpmax
+        
+        print "Setting stepmax to ", stpmax
 
         while True:
-            stp, task, isave, dsave = self.__csrch__(f, g, stp, task, isave, dsave)
+            stp, task, isave, dsave = self.__csrch__(f, g, stp, task, isave, dsave, stpmax)
 
             if task in ("START", "FG"):
                 f, g = phi_dphi(stp)
@@ -91,20 +95,24 @@ class StrongWolfeLineSearch(LineSearch):
 
         if "Error" in task:
             raise RuntimeError, task
-        elif "Warning" in task and not self.ignore_warnings:
-            raise Warning, task
+        elif "Warning" in task:
+            if not self.ignore_warnings:
+                raise Warning, task
+            else:
+                print "Warning in line search: %s." % task.replace("Warning: ", "")
+                return stp
         else:
             assert task=="Convergence" or ("Warning" in task and self.ignore_warnings)
 
             if self.verify:
                 # Recompute the step with the Fortran implementation and compare
-                stp_fort = self.search_fortran(phi, phi_dphi)
+                stp_fort = self.search_fortran(phi, phi_dphi, stpmax)
                 if stp_fort is not None and stp_fort != stp:
                     raise RuntimeError, "The line search verification failed!" 
 
             return stp
 
-    def search_fortran(self, phi, phi_dphi):
+    def search_fortran(self, phi, phi_dphi, stpmax):
         ''' Performs the line search on the function phi using the Fortran implementation
             of the line search algorithm. 
 
@@ -120,14 +128,14 @@ class StrongWolfeLineSearch(LineSearch):
             dphi = lambda x: phi_dphi(x)[1]
             ls_fort = pyswolfe.StrongWolfeLineSearch(phi(0), dphi(0), 1.0, phi, dphi, gtol=self.gtol, 
                                                      xtol=self.xtol, ftol=self.ftol, stp=self.start_stp, 
-                                                     stpmin=self.stpmin, stpmax=self.stpmax)
+                                                     stpmin=self.stpmin, stpmax=stpmax)
             ls_fort.search()
             return ls_fort.stp 
 
         except ImportError:
             info_red("The line search could not be verified. Did you compile the pyswolfe Fortran module?")
 
-    def __csrch__(self, f, g, stp, task, isave, dsave):
-        stp, task, isave, dsave = dcsrch(stp, f, g, self.ftol, self.gtol, self.xtol, task, self.stpmin, self.stpmax, isave, dsave)
+    def __csrch__(self, f, g, stp, task, isave, dsave, stpmax):
+        stp, task, isave, dsave = dcsrch(stp, f, g, self.ftol, self.gtol, self.xtol, task, self.stpmin, stpmax, isave, dsave)
         return stp, task, isave, dsave
 

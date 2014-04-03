@@ -65,7 +65,9 @@ class OptimisationAlgorithm(object):
         if self.status != 0 and self.disp > 0:
             reasons = {1: '\nMaximum number of iterations reached.\n',
                        2: '\nTolerance reached: |delta j| < tol.\n',
-                       3: '\nTolerance reached: |dJ| < gtol.\n'}
+                       3: '\nTolerance reached: |dJ| < gtol.\n',
+                       4: 'Linesearch failed.',
+                       5: 'Algorithm breakdown.'}
             print(reasons[self.status] +  msg.format(it, J, grad.norm(), deltaJ))
             
     

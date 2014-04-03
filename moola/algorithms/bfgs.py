@@ -17,7 +17,7 @@ class LHess(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit=1, mem_lim = 20):
+    def __init__(self, Hinit=1, mem_lim = 10):
         self.Hinit = Hinit
         self.mem_lim = mem_lim
         self.y   = []
@@ -39,7 +39,7 @@ class LHess(LinearOperator):
             self.rho = self.rho[1:]
         self.y.append(yk)
         self.s.append(sk)
-        self.rho.append( yk.dot(sk) )
+        self.rho.append( 1./ yk.dot(sk) )
     def matvec(self,x,k = -1):
         if k == -1:
             k = len(self)-1
@@ -101,16 +101,16 @@ class BFGS(OptimisationAlgorithm):
 
     def perform_line_search(self, xk, pk):
         def phi(alpha):
-            tmpx = xk.__class__(xk)
+            tmpx = xk.copy()
             tmpx.axpy(alpha, pk)
             return self.problem.obj(tmpx)
 
         def phi_dphi(alpha):
-            tmpx = xk.__class__(xk)
+            tmpx = xk.copy()
             tmpx.axpy(alpha, pk)
-            p = phi(alpha) 
+            j = self.problem.obj(tmpx)
             djs = self.problem.obj.derivative(tmpx)(pk)
-            return p, djs
+            return j, djs
 
         ak = self.ls.search(phi, phi_dphi)
         return float(ak) # numpy.float64 does not play nice with moola types
@@ -150,7 +150,7 @@ class BFGS(OptimisationAlgorithm):
             sk = ak * pk
             xk += sk
             
-            J, oldJ = obj(xk), J # FIXME: this is horrible!
+            J, oldJ = obj(xk), J # FIXME: too many calls
 
             # evaluate gradient at the new point
             dJ = obj.derivative(xk)
@@ -159,6 +159,13 @@ class BFGS(OptimisationAlgorithm):
             # update the approximate Hessian
             Hk.update(yk, sk)
 
+            
+            import numpy
+            H = numpy.array([ Hk*numpy.array([1,0]), Hk*numpy.array([0,1])]).T
+            l = numpy.linalg.eigvals(H)
+            print l
+            if l.min()  < 0:
+                from IPython import embed; embed()
             dJ_old = dJ
             it += 1
 

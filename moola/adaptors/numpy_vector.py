@@ -5,7 +5,7 @@ class NumpyVector(Vector):
     ''' An implementation for vectors based on numpy arrays. '''
 
     def __init__(self, data):
-        self.data = np.array(data)
+        self.data = np.array(data, dtype=np.float64)
 
     def __getitem__(self, index):
         ''' Returns the value of the (local) index. '''

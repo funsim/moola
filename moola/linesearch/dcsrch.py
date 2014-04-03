@@ -159,7 +159,7 @@ def dcsrch(stp, f, g, ftol, gtol, xtol, task, stpmin, stpmax, isave, dsave):
         if stp > stpmax: 
             task = 'Error: stp > stpmax'
         if g >= 0.0: 
-            task = 'Error: initial g >= 0'
+            task = 'Error: initial g >= 0 (%e)' % g
         if ftol < 0.0: 
             task = 'Error: ftol < zero'
         if gtol < 0.0:  

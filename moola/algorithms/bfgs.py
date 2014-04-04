@@ -39,17 +39,17 @@ class LHess(LinearOperator):
             self.rho = self.rho[1:]
         self.y.append(yk)
         self.s.append(sk)
-        self.rho.append( 1./ yk.dot(sk) )
+        self.rho.append( 1./ yk.apply(sk) )
     def matvec(self,x,k = -1):
         if k == -1:
             k = len(self)-1
         if k == 0:
             return self.Hinit * x
         rhok, yk, sk = self[k]     
-        t = x - rhok * x.dot(sk) * yk
+        t = x - rhok * x.apply(sk) * yk
         t = self.matvec(t, k-1)
-        t = t - rhok * yk.dot(t) * sk
-        t = t + rhok * x.dot(sk) * sk
+        t = t - rhok * yk.apply(t) * sk
+        t = t + rhok * x.apply(sk) * sk
         return t
 
 class BFGS(OptimisationAlgorithm):

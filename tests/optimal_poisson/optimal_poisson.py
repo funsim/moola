@@ -18,10 +18,38 @@ def solve_pde(u, V, m):
     bc = DirichletBC(V, 0.0, "on_boundary")
     solve(F == 0, u, bc)
 
+def compute_errors(u, m):
+    solve_pde(u, V, m)
+
+    assert abs(sol["Functional value at optimizer"]) < 1e-9
+    assert sol["Number of iterations"] < 50
+
+    # Define the analytical expressions
+    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
+    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+
+    # Compute the error
+    control_error = errornorm(m_analytic, m)
+    state_error = errornorm(u_analytic, u)
+
+    print "Error in state: {}.".format(state_error)
+    print "Error in control: {}.".format(control_error)
+
+    return control_error, state_error
+
+
 if __name__ == "__main__":
 
     n = 100
     mesh = UnitSquareMesh(n, n)
+
+    #cf = CellFunction("bool", mesh)
+    #subdomain = CompiledSubDomain('x[0]>.5')
+    #subdomain.mark(cf, True)
+    #mesh = refine(mesh, cf)
+
+    #plot(mesh)
+
     V = FunctionSpace(mesh, "CG", 1)
     u = Function(V, name='State')
     W = FunctionSpace(mesh, "DG", 0)
@@ -44,21 +72,4 @@ if __name__ == "__main__":
     sol = solver.solve(problem, m_moola)
 
     m_opt = sol['Optimizer'].data
-    u_opt = u
-    solve_pde(u_opt, V, m)
-
-    #plot(m_opt, interactive=True)
-
-    assert abs(sol["Functional value at optimizer"]) < 1e-9
-    assert sol["Number of iterations"] < 50
-
-    # Define the analytical expressions
-    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
-
-    # Compute the error
-    control_error = errornorm(m_analytic, m_opt)
-    state_error = errornorm(u_analytic, u_opt)
-
-    print "Error in state: {}.".format(state_error)
-    print "Error in control: {}.".format(control_error)
+    compute_errors(u, m_opt)

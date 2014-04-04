@@ -55,7 +55,7 @@ class DolfinVector(Vector):
         return self.data.vector().size()
 
     def copy(self):
-        return DolfinVector(self.data.copy(deepcopy=True))
+        return self.__class__(self.data.copy(deepcopy=True))
 
 class DolfinLinearFunctional(DolfinVector):
 

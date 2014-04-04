@@ -165,8 +165,8 @@ class BFGS(OptimisationAlgorithm):
 
         
         self.display(it, J, oldJ, dJ_old)
-        sol =  {"Optimizer" :xk,
+        sol =  {"Optimizer" : xk,
+                "Functional value at optimizer": J,
                 "Number of iterations": it}
-        #from IPython import embed; embed()
         return sol
 

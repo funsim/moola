@@ -28,20 +28,6 @@ class DolfinVector(Vector):
         v = self.data.vector()
         v *= s
 
-    def inner(self, v):
-        ''' Computes the inner product of the function and data. ''' 
-        r = dolfin.inner(self.data, v.data)*dolfin.dx
-        return dolfin.assemble(r)
-
-    def norm(self, type="L2"):
-        ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
-        if type=="L2":
-            return dolfin.norm(self.data, "L2")
-        elif type=="Linf":
-            return dolfin.norm(self.data, "linf")
-        else:
-            raise NotImplementedError, "Unkown norm"
-
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
         v = self.data.vector()
@@ -90,14 +76,16 @@ class DolfinPrimalVector(DolfinVector):
         """ Computes the vector norm induced by the inner product. """
 
         return sqrt(self.inner(self))
+    primal_norm = norm
 
 
 class DolfinDualVector(DolfinVector):
     """ A class for representing dual vectors. """
 
-    def apply(self, vec):
-        assert isinstance(vec, DolfinPrimalVector)
-        return self.data.vector().inner(vec.data.vector())
+    def apply(self, primal):
+        """ Applies the dual vector to a primal vector. """
+        assert isinstance(primal, DolfinPrimalVector)
+        return self.data.vector().inner(primal.data.vector())
     
     def primal(self):
         """ Returns the primal representation. """

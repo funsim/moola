@@ -70,7 +70,7 @@ if __name__ == "__main__":
     rf = ReducedFunctional(J, InitialConditionParameter(m, value=m))
     problem = rf.moola_problem()
     
-    solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 10})
+    solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
     m_moola = moola.DolfinVector(m)
 
     sol = solver.solve(problem, m_moola)

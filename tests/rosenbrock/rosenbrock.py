@@ -20,7 +20,7 @@ class MyFunctional(Functional):
         dy = 100 * 2 * (y - x**2)
         dr = (dx, dy)
 
-        return NumpyLinearFunctional(dr)
+        return NumpyDualVector(dr)
 
     def hessian(self, val, vec):
         x, y = val.data
@@ -28,12 +28,12 @@ class MyFunctional(Functional):
         dxy = -400.*x
         dyy = 200.
         d2v = (dxx * vec[0] + dxy * vec[1], dxy*vec[0] +dyy*vec[1] )
-        return NumpyLinearFunctional(d2v)
+        return NumpyDualVector(d2v)
                 
 
 obj = MyFunctional()
 
-x_init = NumpyVector((-3, -4))
+x_init = NumpyPrimalVector((-3, -4))
 prob = Problem(obj)
 
 x_opt = (1, 1)

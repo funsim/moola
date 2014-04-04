@@ -22,19 +22,19 @@ class OptimisationAlgorithm(object):
 
         This function should return a triple, consisting of:
         The computed stepsize ak
-        The objective evaluated at xk +ak * dk
-        The derivative at xk +ak * dk, if computed
+        The objective evaluated at xk + ak * dk
+        The derivative at xk + ak * dk, if computed
         '''
         p_last = None
         djs = None
         
         def phi(alpha):
-            tmpx = xk.__class__(xk)
+            tmpx = xk.copy()
             tmpx.axpy(alpha, pk)
             return self.problem.obj(tmpx)
 
         def phi_dphi(alpha):
-            tmpx = xk.__class__(xk)
+            tmpx = xk.copy()
             tmpx.axpy(alpha, pk)
             p = p_last = phi(alpha) 
             djs = self.problem.obj.derivative(tmpx)(pk)
@@ -45,12 +45,20 @@ class OptimisationAlgorithm(object):
 
     def check_convergence(self, it, J, oldJ, g):
         s = 0
+
         if it >= self.maxiter:
             s = 1
-        if J != None and oldJ != None and oldJ-J < self.tol != None:
-            s = 2
-        if g!= None and g.norm() < self.gtol != None:
+
+        elif g != None and g.primal_norm() < self.gtol != None:
             s = 3
+
+        elif J != None and oldJ != None and self.tol != None:
+            if J == oldJ == 0:
+                s = 2
+            elif abs(1 - min(J/oldJ, oldJ/J)) <= self.tol:
+                s = 2
+
+
         self.status = s
         return self.status
 
@@ -61,14 +69,14 @@ class OptimisationAlgorithm(object):
             + ('\t|dJ| = {2:e}' if grad is not None else '')\
             + ('\tdeltaJ = {3:e}' if deltaJ is not None else '') 
         if self.status == 0 and self.disp > 1:
-            print(msg.format(it, J, grad.norm(), deltaJ))
+            print(msg.format(it, J, grad.primal_norm(), deltaJ))
         if self.status != 0 and self.disp > 0:
             reasons = {1: '\nMaximum number of iterations reached.\n',
                        2: '\nTolerance reached: |delta j| < tol.\n',
                        3: '\nTolerance reached: |dJ| < gtol.\n',
                        4: 'Linesearch failed.',
                        5: 'Algorithm breakdown.'}
-            print(reasons[self.status] +  msg.format(it, J, grad.norm(), deltaJ))
+            print(reasons[self.status] +  msg.format(it, J, grad.primal_norm(), deltaJ))
             
     
     def solve(self, problem, m):

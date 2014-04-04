@@ -1,4 +1,5 @@
 from moola.linalg import Vector
+from math import sqrt
 import numpy as np
 
 class NumpyVector(Vector):
@@ -23,23 +24,6 @@ class NumpyVector(Vector):
     def scale(self, s):
         self.data *= s
 
-    def dot(self, data):
-        ''' Computes the dot product of the function and data. ''' 
-        return float(np.dot(self.data, data))
-
-    def inner(self, data):
-        ''' Computes the inner product of the function and data. ''' 
-        return float(np.dot(self.data, data))
-
-    def norm(self, type="L2"):
-        ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
-        if type=="L1":
-            return sum(abs(self.data))
-        elif type=="L2":
-            return np.sqrt(sum(self.data**2))
-        else:
-            raise ValueError, "Unkown norm"
-
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
         self.data += a*x.data
@@ -53,14 +37,47 @@ class NumpyVector(Vector):
         return len(self.data)
 
     def copy(self):
-        return NumpyVector(self.data.copy())
+        return self.__class__(self.data.copy())
 
-class NumpyLinearFunctional(NumpyVector):
 
-    def __call__(self, d):
-        return self.dot(d)
+class NumpyPrimalVector(NumpyVector):
+    """ A class for representing primal vectors. """
+
+    def dual(self):
+        """ Returns the dual representation. """
+
+        return NumpyDualVector(self.data.copy())
+
+    def inner(self, vec):
+        """ Computes the inner product with vec. """
+        assert isinstance(vec, NumpyPrimalVector)
+
+        return float(np.dot(self.data, vec.data))
+
+    def norm(self):
+        """ Computes the vector norm induced by the inner product. """
+
+        return sqrt(self.inner(self))
+    primal_norm = norm
+
+
+class NumpyDualVector(NumpyVector):
+    """ A class for representing dual vectors. """
+
+    def apply(self, primal):
+        """ Applies the dual vector to a primal vector. """
+        assert isinstance(primal, NumpyPrimalVector)
+        return float(np.dot(self.data, primal.data))
     
-    apply = __call__
+    def primal(self):
+        """ Returns the primal representation. """
 
-    def riesz_representation(self):
-        return self
+        return NumpyPrimalVector(self.data.copy())
+
+    def primal_norm(self):
+        """ Computes the norm of the primal representation. """
+
+        return sqrt(self.apply(self.primal()))
+
+
+NumpyLinearFunctional = NumpyDualVector

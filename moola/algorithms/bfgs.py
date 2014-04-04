@@ -150,7 +150,6 @@ class BFGS(OptimisationAlgorithm):
         while True:
             #hook("before_iteration", j, grad)
             
-
             if self.check_convergence(it, J, oldJ, dJ_old) != 0:
                 break
             self.display(it, J, oldJ, dJ_old)

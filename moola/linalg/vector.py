@@ -24,14 +24,6 @@ class Vector(object):
         ''' Scales the vector by s. '''
         raise NotImplementedError, "Vector.scale is not implemented"
 
-    def inner(self, f):
-        ''' Computes the inner product of f and itself. ''' 
-        raise NotImplementedError, "Vector.inner is not implemented"
-
-    def norm(self, type="l2"):
-        ''' Computes the function norm. Valid types are "L1", "L2", and "Linf"''' 
-        raise NotImplementedError, "Vector.norm is not implemented"
-
     def axpy(self, a, x):
         ''' Adds a*x to the vector. '''
         raise NotImplementedError, "Vector.axpy is not implemented"

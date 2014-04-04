@@ -13,9 +13,9 @@ class MyFunctional(Functional):
 
     def derivative(self, x):
         arr = x.data
-        return NumpyLinearFunctional(arr)
+        return NumpyDualVector(arr)
 
-init_control = NumpyVector(random(5))
+init_control = NumpyPrimalVector(random(5))
 
 obj = MyFunctional()
 prob = Problem(obj)
@@ -24,12 +24,12 @@ prob = Problem(obj)
 options = {}
 solver = SteepestDescent(options=options)
 sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm("L2") < 1e-10
+assert sol["Optimizer"].norm() < 1e-10
 assert sol["Number of iterations"] == 1
 
 # Solve with Fletcher-Reeves method 
 options = {'gtol': 1e-10}
 solver = FletcherReeves(options=options)
 sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm("L2") < 1e-10
+assert sol["Optimizer"].norm() < 1e-10
 assert sol["Number of iterations"] == 1

@@ -13,9 +13,9 @@ class MyFunctional(Functional):
 
     def derivative(self, x):
         arr = x.data
-        return NumpyLinearFunctional(np.cos(arr))
+        return NumpyDualVector(np.cos(arr))
 
-init_control = NumpyVector(np.ones(1))
+init_control = NumpyPrimalVector(np.ones(1))
 obj = MyFunctional()
 prob = Problem(obj)
 

@@ -8,10 +8,7 @@ class DolfinVector(Vector):
         ''' Creates a new DolfinVector with a deep-copy of the 
         underlying data. The parameter 'data' must be 
         a DolfinVector or a numpy.array. '''
-        if isinstance(data, DolfinVector):
-            data = data.data
-
-        self.data = data.__class__(data) 
+        self.data = data 
 
     def __getitem__(self, index):
         ''' Returns the value of the (local) index. '''
@@ -56,4 +53,29 @@ class DolfinVector(Vector):
     def size(self):
         ''' Returns the (gobal) size of the vector. '''
         return self.data.vector().size()
+
+    def copy(self):
+        return DolfinVector(self.data.copy(deepcopy=True))
+
+class DolfinLinearFunctional(DolfinVector):
+
+    def __call__(self, d):
+        return self.data.vector().inner(d.data.vector())
+    
+    apply = __call__
+
+    def riesz_representation(self):
+        if isinstance(self.data, dolfin.Function):
+
+            V = self.data.function_space()
+            u = dolfin.TrialFunction(V)
+            v = dolfin.TestFunction(V)
+            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
+
+            proj = dolfin.Function(V)
+            dolfin.solve(M, proj.vector(), self.data.vector())
+
+            return DolfinVector(proj)
+        else:
+            return self
 

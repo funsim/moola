@@ -59,6 +59,8 @@ class NumpyLinearFunctional(NumpyVector):
 
     def __call__(self, d):
         return self.dot(d)
+    
+    apply = __call__
 
     def riesz_representation(self):
         return self

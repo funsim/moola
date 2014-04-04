@@ -43,10 +43,14 @@ if __name__ == "__main__":
     n = 100
     mesh = UnitSquareMesh(n, n)
 
-    #cf = CellFunction("bool", mesh)
-    #subdomain = CompiledSubDomain('x[0]>.5')
-    #subdomain.mark(cf, True)
-    #mesh = refine(mesh, cf)
+    def ref(mesh):
+        cf = CellFunction("bool", mesh)
+        subdomain = CompiledSubDomain('x[0]>.5')
+        subdomain.mark(cf, True)
+        return refine(mesh, cf)
+
+    mesh = ref(mesh)
+    mesh = ref(mesh)
 
     #plot(mesh)
 

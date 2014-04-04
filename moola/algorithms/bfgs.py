@@ -1,35 +1,46 @@
 from optimisation_algorithm import *
 
 
-class  LinearOperator(object):
+class LinearOperator(object):
+
     def __init__(self, matvec):
         self.matvec = matvec
+
     def __mul__(self,x):
         return self.matvec(x)
+
     def __rmul__(self,x):
         return NotImplemented
+
     def __call__(self,x):
         return self.matvec(x)
 
-        
+
+def dual_to_primal(x):
+    print "in matvec"
+    return x.primal()
+ 
 
 class LHess(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit=1, mem_lim = 10):
+    def __init__(self, Hinit, mem_lim = 10):
         self.Hinit = Hinit
         self.mem_lim = mem_lim
         self.y   = []
         self.s   = []
         self.rho = []
+        
     def __len__(self):
         assert( len(self.y) == len(self.s) )
         return len(self.y)+1
+
     def __getitem__(self,k):
         if k==0:
             return self.Hinit
         return (self.rho[k-1], self.y[k-1], self.s[k-1])
+
     def update(self,yk, sk):
         if self.mem_lim == 0:
             return
@@ -40,6 +51,7 @@ class LHess(LinearOperator):
         self.y.append(yk)
         self.s.append(sk)
         self.rho.append( 1./ yk.apply(sk) )
+
     def matvec(self,x,k = -1):
         if k == -1:
             k = len(self)-1
@@ -56,7 +68,7 @@ class BFGS(OptimisationAlgorithm):
     """
         Implements the BFGS method. 
      """
-    def __init__(self, Hinit=1, options={}, hooks={}, **args):
+    def __init__(self, Hinit=LinearOperator(dual_to_primal), options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
@@ -109,7 +121,7 @@ class BFGS(OptimisationAlgorithm):
             tmpx = xk.copy()
             tmpx.axpy(alpha, pk)
             j = self.problem.obj(tmpx)
-            djs = self.problem.obj.derivative(tmpx)(pk)
+            djs = self.problem.obj.derivative(tmpx).apply(pk)
             return j, djs
 
         ak = self.ls.search(phi, phi_dphi)

@@ -1,5 +1,6 @@
 from moola.linalg import Vector
 import dolfin 
+from math import sqrt
 
 class DolfinVector(Vector):
     ''' An implementation for vectors based on Dolfin data types. '''
@@ -57,14 +58,13 @@ class DolfinVector(Vector):
     def copy(self):
         return self.__class__(self.data.copy(deepcopy=True))
 
-class DolfinLinearFunctional(DolfinVector):
 
-    def __call__(self, d):
-        return self.data.vector().inner(d.data.vector())
-    
-    apply = __call__
+class DolfinPrimalVector(DolfinVector):
+    """ A class for representing primal vectors. """
 
-    def riesz_representation(self):
+    def dual(self):
+        """ Returns the dual representation. """
+
         if isinstance(self.data, dolfin.Function):
 
             V = self.data.function_space()
@@ -72,10 +72,52 @@ class DolfinLinearFunctional(DolfinVector):
             v = dolfin.TestFunction(V)
             M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
 
-            proj = dolfin.Function(V)
-            dolfin.solve(M, proj.vector(), self.data.vector())
+            primal_vec = M * self.data.vector()
+            primal = dolfin.Function(V, primal_vec)
 
-            return DolfinVector(proj)
+            return DolfinDualVector(primal)
         else:
             return self
 
+    def inner(self, vec):
+        """ Computes the inner product with vec. """
+        assert isinstance(vec, DolfinPrimalVector)
+
+        return dolfin.assemble(dolfin.inner(self.data, vec.data)*dolfin.dx)
+
+
+    def norm(self):
+        """ Computes the vector norm induced by the inner product. """
+
+        return sqrt(self.inner(self))
+
+
+class DolfinDualVector(DolfinVector):
+    """ A class for representing dual vectors. """
+
+    def apply(self, vec):
+        assert isinstance(vec, DolfinPrimalVector)
+        return self.data.vector().inner(vec.data.vector())
+    
+    def primal(self):
+        """ Returns the primal representation. """
+        if isinstance(self.data, dolfin.Function):
+
+            V = self.data.function_space()
+            u = dolfin.TrialFunction(V)
+            v = dolfin.TestFunction(V)
+            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
+
+            dual = dolfin.Function(V)
+            dolfin.solve(M, dual.vector(), self.data.vector())
+
+            return DolfinPrimalVector(dual)
+        else:
+            return self
+
+    def primal_norm(self):
+        """ Computes the norm of the primal representation. """
+
+        return sqrt(self.apply(self.primal()))
+
+DolfinLinearFunctional = DolfinDualVector

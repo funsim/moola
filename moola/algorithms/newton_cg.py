@@ -21,7 +21,7 @@ class NewtonCG(OptimisationAlgorithm):
 
         # Set the default options values
 	if tol is not None:
-	    raise ValueError, 'tol argument not supported. Must be None'
+	    print 'tol argument not supported. Will be ignored.'
 	self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)

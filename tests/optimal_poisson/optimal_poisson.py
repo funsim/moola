@@ -71,7 +71,8 @@ if __name__ == "__main__":
     problem = rf.moola_problem()
     
     solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
-    m_moola = moola.DolfinVector(m)
+    #solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20})
+    m_moola = moola.DolfinPrimalVector(m)
 
     sol = solver.solve(problem, m_moola)
 

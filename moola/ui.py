@@ -1,11 +1,15 @@
-from problem import Problem, Functional
-from linalg import Vector, LinearFunctional
-from algorithms import SteepestDescent, FletcherReeves, BFGS, NonLinearCG
 from misc.infinity import inf
 
-from adaptors.numpy_vector import NumpyPrimalVector, NumpyDualVector
-from adaptors.dolfin_vector import DolfinPrimalVector, DolfinDualVector
+from problem import Problem
+from problem import Functional
 
-# Deprecated imports
-from adaptors.numpy_vector import NumpyPrimalVector, NumpyDualVector, NumpyLinearFunctional
-from adaptors.dolfin_vector import DolfinVector, DolfinLinearFunctional, DolfinPrimalVector, DolfinDualVector
+from algorithms import BFGS
+from algorithms import NewtonCG
+from algorithms import NonLinearCG
+from algorithms import FletcherReeves
+from algorithms import SteepestDescent
+
+from adaptors.numpy_vector import NumpyPrimalVector
+from adaptors.numpy_vector import NumpyDualVector
+from adaptors.dolfin_vector import DolfinPrimalVector
+from adaptors.dolfin_vector import DolfinDualVector

@@ -30,6 +30,8 @@ class DolfinVector(Vector):
 
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''
+        assert self.__class__ == x.__class__
+
         v = self.data.vector()
         v.axpy(a, x.data.vector())
 

@@ -43,17 +43,17 @@ class FletcherReeves(OptimisationAlgorithm):
 
         # Define the real-valued reduced function in the s-direction 
         def phi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             return obj(tmpm)
 
         def phi_dphi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             p = phi(alpha) 
-            djs = obj.derivative(tmpm)(s)
+            djs = obj.derivative(tmpm).apply(s)
             return p, djs
 
         # Perform the line search
@@ -72,10 +72,10 @@ class FletcherReeves(OptimisationAlgorithm):
         obj = problem.obj
 
         dj = obj.derivative(m)
-        dj_grad = obj.gradient(m)
-        b = dj(dj_grad)
+        dj_grad = dj.primal()
+        b = dj.apply(dj_grad)
 
-        s = dj_grad.__class__(dj_grad) # search direction
+        s = dj_grad.copy() # search direction
         s.scale(-1)
 
         # Start the optimisation loop
@@ -91,11 +91,11 @@ class FletcherReeves(OptimisationAlgorithm):
 
             # Reevaluate the gradient
             dj = obj.derivative(m)
-            dj_grad = obj.gradient(m)
+            dj_grad = dj.primal()
 
             # Compute the relaxation value
             b_old = b 
-            b = dj(dj_grad)
+            b = dj.apply(dj_grad)
             beta = b/b_old
 
             # Update the search direction

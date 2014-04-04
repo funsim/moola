@@ -60,7 +60,7 @@ class SteepestDescent(OptimisationAlgorithm):
         it = 0
         while True:
 
-            grad = obj.derivative(m).riesz_representation()
+            grad = obj.derivative(m).primal()
 
             if self.hooks.has_key("before_iteration"):
                 self.hooks["before_iteration"](j, grad)
@@ -82,7 +82,7 @@ class SteepestDescent(OptimisationAlgorithm):
                 tmp.axpy(-alpha, grad)
 
                 j = obj(tmp) 
-                djs = -obj.derivative(tmp)(grad)
+                djs = -obj.derivative(tmp).apply(grad)
 
                 return j, djs
 

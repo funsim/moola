@@ -43,17 +43,17 @@ class NewtonCG(OptimisationAlgorithm):
 
         # Define the real-valued reduced function in the s-direction 
         def phi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             return obj(tmpm)
 
         def phi_dphi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             p = phi(alpha) 
-            djs = obj.derivative(tmpm)(s)
+            djs = obj.derivative(tmpm).apply(s)
             return p, djs
 
         # Perform the line search
@@ -77,9 +77,9 @@ class NewtonCG(OptimisationAlgorithm):
             dJ = obj.derivative(xk)
 
             rj = dJ.copy()
-            rr = rj.dot(rj)
+            rr = rj.primal_norm()
             
-            ej = min( 0.5, rr**.25) * rr**.5
+            ej = min( 0.5, rr**.5) * rr
             
             zj = dJ.copy()
             zj.scale(0.) # z0 = 0
@@ -93,27 +93,28 @@ class NewtonCG(OptimisationAlgorithm):
                 if iit >= 100:
                     print 'maximum of {} inner iterations reached'.format(iit)
                     break
-                bj = obj.hessian(xk, dj)
-                t = bj.dot(dj)
+                Bj = obj.hessian(xk)
+                Bjdj = Bj *dj
+                t = Bjdj.apply(dj)
                 if t<= 0:
                     if iit == 0:
-                        pk = -dJ
+                        pk = -dJ.primal()
                         break
                     else:
                         pk = zj
                         break
                 alphj = rr/ t #?
-                zj = zj +alphj * dj #zj.axpy(alphj, dj)
-                rj = rj +alphj * bj #rj.axpy(alphj, bj)
-                rr, rr_old = rj.dot(rj), rr
+                zj = zj +alphj * dj    #zj.axpy(alphj, dj)
+                rj = rj +alphj * Bj.dj #rj.axpy(alphj, bj)
+                rr, rr_old = rj.primal_norm(), rr
                 #print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
-                if rr < ej**2:
+                if rr < ej:
                     pk = zj
                     break
                 betaj = rr / rr_old
                 #dj.axpy(betaj, dj) # doesn't give expected result?
                 #dj.axpy(-1., rj)
-                dj = betaj * dj -rj
+                dj = betaj * dj -rj.primal()
                 iit +=1
             #
             alpha = self.do_linesearch(obj, xk, pk)

@@ -46,17 +46,17 @@ class NonLinearCG(OptimisationAlgorithm):
 
         # Define the real-valued reduced function in the s-direction 
         def phi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             return obj(tmpm)
 
         def phi_dphi(alpha):
-            tmpm = m.__class__(m)
+            tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
             p = phi(alpha) 
-            djs = obj.derivative(tmpm)(s)
+            djs = obj.derivative(tmpm).apply(s)
             return p, djs
 
         # Perform the line search
@@ -75,10 +75,10 @@ class NonLinearCG(OptimisationAlgorithm):
         obj = problem.obj
 
         dj = obj.derivative(m)
-        dj_grad = obj.gradient(m)
+        dj_grad = dj.primal()
         
 
-        s = dj_grad.__class__(dj_grad) # search direction
+        s = dj_grad.copy() # search direction
         s.scale(-1)
 
         # Start the optimisation loop
@@ -101,24 +101,24 @@ class NonLinearCG(OptimisationAlgorithm):
 
             # Compute the relaxation value
             if self.cg_scheme == 'FR':
-                b_old = dj(dj_grad)
+                b_old = dj.apply(dj_grad)
                 dj = obj.derivative(m)
-                dj_grad = obj.gradient(m)
-                b = dj(dj_grad)
+                dj_grad = dj.primal()
+                b = dj.apply(dj_grad)
                 beta = b/b_old
             if self.cg_scheme == 'HS':
                 y = dj
                 dj = obj.derivative(m)
-                dj_grad = obj.gradient(m)
+                dj_grad = dj.primal()
                 y.axpy(-1.,dj)
-                beta = y(dj_grad) /y(s)
+                beta = y.apply(dj_grad) /y(s)
             if self.cg_scheme in ('PR', 'PR+'):
-                b = dj(dj_grad)
+                b = dj.apply(dj_grad)
                 y = dj
                 dj = obj.derivative(m)
-                dj_grad = obj.gradient(m)
+                dj_grad = dj.primal()
                 y.axpy(-1.,dj)
-                a = y(dj_grad)
+                a = y.apply(dj_grad)
                 beta = -a /b
                 if self.cg_scheme == 'PR+':
                     beta = max(beta,0)
@@ -126,24 +126,24 @@ class NonLinearCG(OptimisationAlgorithm):
                 y = dj
                 z = dj_grad
                 dj = obj.derivative(m)
-                dj_grad = obj.gradient(m)
+                dj_grad = dj.primal()
                 y.axpy(-1.,dj)
                 z.axpy(-1., dj_grad)
-                a = y(z)
-                b = -y(s)
-                c = -y(dj_grad)
-                d = dj(s)
+                a = y.apply(z)
+                b = -y.apply(s)
+                c = -y.apply(dj_grad)
+                d = dj.apply(s)
                 beta = (c - 2*d*a/b)/b
             if self.cg_scheme == 'DY':
                 y = dj
                 dj = obj.derivative(m)
-                dj_grad = obj.gradient(m)
+                dj_grad = dj.primal()
                 y.axpy(-1.,dj)
-                beta = - dj(dj_grad) / y(s)
+                beta = - dj.apply(dj_grad) / y(s)
             if self.cg_scheme == 'D':
                 h = obj.hessian(m_prev, s)
-                dj_grad = obj.gradient(m)
-                beta =  h(dj_grad) / h(s)
+                dj_grad = obj.derivative().primal()
+                beta =  h.apply(dj_grad) / h(s)
                 
             # Update the search direction
             s.scale(beta)

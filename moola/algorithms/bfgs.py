@@ -159,13 +159,6 @@ class BFGS(OptimisationAlgorithm):
             # update the approximate Hessian
             Hk.update(yk, sk)
 
-            
-            import numpy
-            H = numpy.array([ Hk*numpy.array([1,0]), Hk*numpy.array([0,1])]).T
-            l = numpy.linalg.eigvals(H)
-            print l
-            if l.min()  < 0:
-                from IPython import embed; embed()
             dJ_old = dJ
             it += 1
 

@@ -27,15 +27,15 @@ class NonLinearCG(OptimisationAlgorithm):
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)
         self.line_search = options.get("line_search", "strong_wolfe")
-        self.line_search_options = options.get("line_search_options", {'gtol':1e-12, 'xtol':1e-16})
+        self.line_search_options = options.get("line_search_options", {'gtol':1e-1, 'xtol':1e-16})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
 
         # method-specific settings
-        self.cg_scheme = options.get("cg_scheme", 'D')
+        self.cg_scheme = options.get("cg_scheme", 'HZ')
 
     def __str__(self):
-        s = "Nonlinear CG.\n"
+        s = "Nonlinear CG ({}).\n".format(self.cg_scheme)
         s += "-"*30 + "\n"
         s += "Line search:\t\t %s\n" % self.line_search 
         s += "Maximum iterations:\t %i\n" % self.maxiter 
@@ -158,5 +158,4 @@ class NonLinearCG(OptimisationAlgorithm):
         self.display(it, None, None, dj_grad)
         sol = Solution({"Optimizer": m,
                             "Number of iterations": it})
-        print self.reason
         return sol

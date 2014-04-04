@@ -88,13 +88,13 @@ class NewtonCG(OptimisationAlgorithm):
             iit = 0
             if self.check_convergence(it,None,None, rj):
                 break
+            self.display(it, None, None, rj)
             while True:
                 if iit >= 100:
                     print 'maximum of {} inner iterations reached'.format(iit)
                     break
                 bj = obj.hessian(xk, dj)
                 t = bj.dot(dj)
-                print 't = ',t
                 if t<= 0:
                     if iit == 0:
                         pk = -dJ
@@ -106,7 +106,7 @@ class NewtonCG(OptimisationAlgorithm):
                 zj = zj +alphj * dj #zj.axpy(alphj, dj)
                 rj = rj +alphj * bj #rj.axpy(alphj, bj)
                 rr, rr_old = rj.dot(rj), rr
-                print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
+                #print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
                 if rr < ej**2:
                     pk = zj
                     break

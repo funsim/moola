@@ -83,7 +83,7 @@ class NewtonCG(OptimisationAlgorithm):
             
             zj = dJ.copy()
             zj.scale(0.) # z0 = 0
-            dj = rj.copy()
+            dj = rj.primal()
             dj.scale(-1.)
             iit = 0
             if self.check_convergence(it,None,None, rj):
@@ -94,7 +94,7 @@ class NewtonCG(OptimisationAlgorithm):
                     print 'maximum of {} inner iterations reached'.format(iit)
                     break
                 Bj = obj.hessian(xk)
-                Bjdj = Bj *dj
+                Bjdj = Bj(dj)
                 t = Bjdj.apply(dj)
                 if t<= 0:
                     if iit == 0:
@@ -105,9 +105,9 @@ class NewtonCG(OptimisationAlgorithm):
                         break
                 alphj = rr/ t #?
                 zj = zj +alphj * dj    #zj.axpy(alphj, dj)
-                rj = rj +alphj * Bj.dj #rj.axpy(alphj, bj)
+                rj = rj +alphj * Bjdj #rj.axpy(alphj, bj)
                 rr, rr_old = rj.primal_norm(), rr
-                #print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
+                print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
                 if rr < ej:
                     pk = zj
                     break

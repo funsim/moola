@@ -11,6 +11,17 @@ domain = rect - circ
 N = 50  # Mesh resolution 
 mesh = Mesh(domain, N)
 
+def ref(mesh):
+    cf = CellFunction("bool", mesh)
+    subdomain1 = CompiledSubDomain('pow((x[0] - 10), 2) + pow((x[1] - 5), 2) < pow(3.5, 2)')
+    subdomain2 = CompiledSubDomain('pow((x[1] - 5), 2) < pow(1, 2)')
+    subdomain1.mark(cf, True)
+    subdomain2.mark(cf, True)
+    return refine(mesh, cf)
+
+mesh = ref(mesh)
+mesh = ref(mesh)
+
 #plot(mesh)
 #interactive()
 

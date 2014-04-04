@@ -21,8 +21,7 @@ def solve_pde(u, V, m):
 def compute_errors(u, m):
     solve_pde(u, V, m)
 
-    assert abs(sol["Functional value at optimizer"]) < 1e-9
-    assert sol["Number of iterations"] < 50
+    
 
     # Define the analytical expressions
     m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
@@ -40,7 +39,7 @@ def compute_errors(u, m):
 
 if __name__ == "__main__":
 
-    n = 100
+    n = 16
     mesh = UnitSquareMesh(n, n)
 
     def ref(mesh):
@@ -71,10 +70,12 @@ if __name__ == "__main__":
     problem = rf.moola_problem()
     
     solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
-    #solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20})
+    #solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-12, 'maxiter': 20})
     m_moola = moola.DolfinPrimalVector(m)
 
     sol = solver.solve(problem, m_moola)
 
     m_opt = sol['Optimizer'].data
     compute_errors(u, m_opt)
+    assert abs(sol["Functional value at optimizer"]) < 1e-9
+    assert sol["Number of iterations"] < 50

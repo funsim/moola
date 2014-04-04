@@ -22,13 +22,16 @@ class MyFunctional(Functional):
 
         return NumpyDualVector(dr)
 
-    def hessian(self, val, vec):
+    def hessian(self, val):
         x, y = val.data
-        dxx = 2. + 1200.*x**2 - 400.*y
-        dxy = -400.*x
-        dyy = 200.
-        d2v = (dxx * vec[0] + dxy * vec[1], dxy*vec[0] +dyy*vec[1] )
-        return NumpyDualVector(d2v)
+        def hes(vec):
+            v = vec.data
+            dxx = 2. + 1200.*x**2 - 400.*y
+            dxy = -400.*x
+            dyy = 200.
+            d2v = (dxx * v[0] + dxy * v[1], dxy*v[0] +dyy*v[1] )
+            return NumpyDualVector(d2v)
+        return hes
                 
 
 obj = MyFunctional()
@@ -49,7 +52,8 @@ options = {'disp':2, 'tol': None, 'gtol': 1e-16, 'maxiter': 200, 'mem_lim': 2}
 #print '\n\n\n'
 
 # Solve the problem with the Fletcher-Reeves method
-solver = NonLinearCG(options=options)
+#solver = NonLinearCG(options=options)
+solver = NewtonCG(options=options)
 sol = solver.solve(prob, x_init.copy())
 #assert max(abs(sol["Optimizer"].data + x_opt)) < f_opt + 1e-9
 #assert sol["Number of iterations"] < 50

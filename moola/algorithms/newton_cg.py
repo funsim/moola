@@ -81,7 +81,7 @@ class NewtonCG(OptimisationAlgorithm):
             
             ej = min( 0.5, rr**.5) * rr
             
-            zj = dJ.copy()
+            zj = dJ.primal()
             zj.scale(0.) # z0 = 0
             dj = rj.primal()
             dj.scale(-1.)
@@ -103,7 +103,7 @@ class NewtonCG(OptimisationAlgorithm):
                     else:
                         pk = zj
                         break
-                alphj = rr/ t #?
+                alphj = rr**2/ t #?
                 zj = zj +alphj * dj    #zj.axpy(alphj, dj)
                 rj = rj +alphj * Bjdj #rj.axpy(alphj, bj)
                 rr, rr_old = rj.primal_norm(), rr
@@ -122,7 +122,8 @@ class NewtonCG(OptimisationAlgorithm):
             it +=1
         self.display(it, None, None, rj)
         sol = {'Optimizer': xk,
-               'Number of iterations': it}
+               'Number of iterations': it,
+               'Functional value at optimizer': None }
         return sol
                 
  

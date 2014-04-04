@@ -76,7 +76,7 @@ class OptimisationAlgorithm(object):
                        3: '\nTolerance reached: |dJ| < gtol.\n',
                        4: 'Linesearch failed.',
                        5: 'Algorithm breakdown.'}
-            print(reasons[self.status] +  msg.format(it, J, grad.primal_norm(), deltaJ))
+            print(msg.format(it, J, grad.primal_norm(), deltaJ) + reasons[self.status] )
             
     
     def solve(self, problem, m):

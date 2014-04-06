@@ -1,12 +1,13 @@
 """ Solves a MMS problem with smooth control """
+from dolfin import *
+from dolfin_adjoint import *
+
 try:
-    from dolfin import *
-    from dolfin_adjoint import *
+    import moola
 except ImportError:
     import sys
     info_blue("moola bindings unavailable, skipping test")
     sys.exit(0)
-import moola
 
 dolfin.set_log_level(ERROR)
 parameters['std_out_all_processes'] = False

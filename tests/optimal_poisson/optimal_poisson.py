@@ -68,13 +68,14 @@ if __name__ == "__main__":
 
     # Run the optimisation 
     rf = ReducedFunctional(J, InitialConditionParameter(m, value=m))
+
     problem = rf.moola_problem()
-    
-    #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
+    solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
     solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-5, 'maxiter': 20})
     m_moola = moola.DolfinPrimalVector(m)
-
     sol = solver.solve(problem, m_moola)
+
+    #minimize(rf, method="Newton-CG", options={"xtol": 1e-100})
 
     m_opt = sol['Optimizer'].data
     compute_errors(u, m_opt)
@@ -83,4 +84,4 @@ if __name__ == "__main__":
         assert abs(sol["Functional value at optimizer"]) < 1e-9
     assert sol["Number of iterations"] == 1
 
-    print moola.misc.events
+    print moola.events

@@ -64,7 +64,7 @@ class DolfinPrimalVector(DolfinVector):
     def dual(self):
         """ Returns the dual representation. """
 
-        events.increment("primal -> dual")
+        events.increment("Primal -> dual map")
         if isinstance(self.data, dolfin.Function):
 
             V = self.data.function_space()
@@ -82,7 +82,7 @@ class DolfinPrimalVector(DolfinVector):
     def inner(self, vec):
         """ Computes the inner product with vec. """
         assert isinstance(vec, DolfinPrimalVector)
-        events.increment("inner product")
+        events.increment("Inner product")
 
         return dolfin.assemble(dolfin.inner(self.data, vec.data)*dolfin.dx)
 
@@ -104,7 +104,7 @@ class DolfinDualVector(DolfinVector):
     
     def primal(self):
         """ Returns the primal representation. """
-        events.increment("dual -> primal")
+        events.increment("Dual -> primal map")
 
         if isinstance(self.data, dolfin.Function):
 

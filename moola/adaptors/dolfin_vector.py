@@ -1,4 +1,5 @@
 from moola.linalg import Vector
+from moola.misc import events
 import dolfin 
 from math import sqrt
 
@@ -63,6 +64,7 @@ class DolfinPrimalVector(DolfinVector):
     def dual(self):
         """ Returns the dual representation. """
 
+        events.increment("primal -> dual")
         if isinstance(self.data, dolfin.Function):
 
             V = self.data.function_space()
@@ -80,6 +82,7 @@ class DolfinPrimalVector(DolfinVector):
     def inner(self, vec):
         """ Computes the inner product with vec. """
         assert isinstance(vec, DolfinPrimalVector)
+        events.increment("inner product")
 
         return dolfin.assemble(dolfin.inner(self.data, vec.data)*dolfin.dx)
 
@@ -101,6 +104,8 @@ class DolfinDualVector(DolfinVector):
     
     def primal(self):
         """ Returns the primal representation. """
+        events.increment("dual -> primal")
+
         if isinstance(self.data, dolfin.Function):
 
             V = self.data.function_space()

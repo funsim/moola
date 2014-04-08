@@ -82,3 +82,5 @@ if __name__ == "__main__":
     if sol["Functional value at optimizer"] is not None:
         assert abs(sol["Functional value at optimizer"]) < 1e-9
     assert sol["Number of iterations"] == 1
+
+    print moola.misc.events

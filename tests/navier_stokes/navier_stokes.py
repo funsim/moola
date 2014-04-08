@@ -8,7 +8,7 @@ set_log_level(ERROR)
 rect = Rectangle(0, 0, 30, 10) 
 circ = Circle(10, 5, 2.5)
 domain = rect - circ
-N = 50  # Mesh resolution 
+N = 25  # Mesh resolution
 mesh = Mesh(domain, N)
 
 def ref(mesh):
@@ -92,4 +92,5 @@ f.assign(m_opt)
 solve(F == 0, s, bcs=bcu+bcp)
 print "Functional value at optimizier: ", assemble(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx)
 
-plot(m_opt, interactive=True)
+#plot(m_opt, interactive=True)
+print moola.events

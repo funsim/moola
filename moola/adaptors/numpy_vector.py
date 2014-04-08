@@ -32,6 +32,10 @@ class NumpyVector(Vector):
         ''' Returns the (local) size of the vector. '''
         return len(self.data)
 
+    def zero(self):
+        ''' Zeros the vector. '''
+        self.data[:] = 0
+
     def size(self):
         ''' Returns the (global) size of the vector. '''
         return len(self.data)

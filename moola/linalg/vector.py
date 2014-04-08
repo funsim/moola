@@ -27,7 +27,7 @@ class Vector(object):
     def axpy(self, a, x):
         ''' Adds a*x to the vector. '''
         raise NotImplementedError, "Vector.axpy is not implemented"
-    
+
     def local_size(self):
         ''' Returns the (local) size of the vector. '''
         raise NotImplementedError, "Vector.__local_size__ is not implemented"
@@ -45,7 +45,7 @@ class Vector(object):
         raise NotImplementedError, "Vector.to_petsc is not implemented"
 
 
-    ############# Standard methods  #####################
+    ################# Default implementations #####################
     def __init__(self, data):
         ''' Creates a new Vector.'''
         self.data = data
@@ -84,3 +84,9 @@ class Vector(object):
         ''' Returns a deep-copy of the vector. '''
         d = self.data.__class__(self.data)
         return Vector(d)
+
+    def assign(self, x):
+        ''' Copies the values from x to the function. '''
+        self.zero()
+        self.axpy(1.0, x)
+    

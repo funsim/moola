@@ -46,6 +46,12 @@ class DolfinVector(Vector):
         v.axpy(a, x.data.vector())
         self.bump_version()
 
+    def zero(self):
+        ''' Zeros the function. '''
+        v = self.data.vector()
+        v.zero()
+        self.bump_version()
+
     def local_size(self):
         ''' Returns the (local) size of the vector. '''
         return self.data.vector().local_size()

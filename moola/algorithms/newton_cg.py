@@ -20,9 +20,9 @@ class NewtonCG(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-	if tol is not None:
-	    print 'tol argument not supported. Will be ignored.'
-	self.tol = tol
+        if tol is not None:
+            print 'tol argument not supported. Will be ignored.'
+            self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)
@@ -31,6 +31,11 @@ class NewtonCG(OptimisationAlgorithm):
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
 
+        # method specific options:
+        self.ncg_reltol  = options.get("ncg_reltol", .5)
+        self.ncg_maxiter = options.get("ncg_maxiter", 200)
+        self.ncg_hesstol = options.get("ncg_hesstol", "default")
+    
     def __str__(self):
         s = "Newton CG method.\n"
         s += "-"*30 + "\n"
@@ -47,60 +52,82 @@ class NewtonCG(OptimisationAlgorithm):
               * solution: The solution to the optimisation problem 
          '''
         print self
-        obj = problem.obj
-        it = 0
+        if self.ncg_hesstol == "default":
+            import numpy
+            eps = numpy.finfo(numpy.float64).eps
+            self.ncg_hesstol = eps*numpy.sqrt(len(xk))
+            
+        objective = problem.obj
+        opt_iter = 0
         while True:
-            if it>= self.maxiter:
+            if opt_iter >= self.maxiter:
                 break
-            dJ = obj.derivative(xk)
+            # compute derivative at current control
+            dJ_xk = objective.derivative(xk)
+            '''
+            The newton step is
+            
+                d^2 J (xk) dx = -dJ(xk).      [N]
+            
+            We solve the subproblem [N] approximately.
+            '''
 
-            rj = dJ.copy()
-            rr = rj.primal_norm()
+            res  = -dJ_xk.copy()       #  Initial residual
+            z    = res.primal()        #  Krylov solver iterate
+            p    = z.copy()            #    ---------------- 
+            dx   = 0 * z               #  Current CG solution of [N]
+            err  = res.apply(z)        #  Norm of the residual
+              
+            Hk = objective.hessian(xk)
             
-            ej = min( 0.5, rr**.5) * rr
+
             
-            zj = dJ.primal()
-            zj.scale(0.) # z0 = 0
-            dj = rj.primal()
-            dj.scale(-1.)
-            iit = 0
-            if self.check_convergence(it,None,None, rj):
+            if self.check_convergence(opt_iter,None,None, res):
                 break
-            self.display(it, None, None, rj)
+            self.display(opt_iter, None, None, res)
+
+            # CG iterations
+            cg_tol = min(self.ncg_reltol**2, err**.5) * err   # Stopping criterion for the CG solve
+            cg_iter = 0
+            cg_break = 0
             while True:
-                if iit >= 100:
-                    print 'maximum of {} inner iterations reached'.format(iit)
+                if cg_iter >= self.ncg_maxiter:
+                    cg_break = 1
+                # Compute curvature at the current CG iterate.
+                Hk_p = Hk(p)
+                curve = Hk_p.apply(p)
+                print 'cg_iter = {}\tcurve = {}\thesstol = {}'.format(cg_iter, curve,self.ncg_hesstol)
+                if curve < 0 and cg_iters == 0:
+                    # Fall back to steepest descent.
+                    dx = z
                     break
-                Bj = obj.hessian(xk)
-                Bjdj = Bj(dj)
-                t = Bjdj.apply(dj)
-                if t<= 0:
-                    if iit == 0:
-                        pk = -dJ.primal()
-                        break
-                    else:
-                        pk = zj
-                        break
-                alphj = rr**2/ t #?
-                zj = zj +alphj * dj    #zj.axpy(alphj, dj)
-                rj = rj +alphj * Bjdj #rj.axpy(alphj, bj)
-                rr, rr_old = rj.primal_norm(), rr
-                print 'iit = {}\trr = {}\tej = {} '.format(iit, rr, ej)
-                if rr < ej:
-                    pk = zj
+                if 0 <= curve < self.ncg_hesstol:
+                    cg_break = 2
                     break
-                betaj = rr / rr_old
-                #dj.axpy(betaj, dj) # doesn't give expected result?
-                #dj.axpy(-1., rj)
-                dj = betaj * dj -rj.primal()
-                iit +=1
-            #
-            xk, alpha = self.do_linesearch(obj, xk, pk)
-            it +=1
-
-        self.display(it, None, None, rj)
+                # Standard CG iterations
+                alpha = err / curve
+                dx += alpha * p             # update solution
+                res -= alpha * Hk_p      # update residual
+                cg_iter +=1
+                
+                z = res.primal()            # update solver iterates
+                
+                
+                err, old_err  =  res.apply(z),  err
+                # check for CG convergence
+                if err < cg_tol:
+                    break
+                
+                beta  =  err / old_err
+                p = z + beta * p
+            
+            xk, alpha = self.do_linesearch(objective, xk, dx)
+            opt_iter +=1
+            if cg_break != 0:
+                break
+        self.display(opt_iter, None, None, res)
         sol = {'Optimizer': xk,
-               'Number of iterations': it,
+               'Number of iterations': opt_iter,
                'Functional value at optimizer': None }
         return sol
                 

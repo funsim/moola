@@ -28,7 +28,7 @@ class OptimisationAlgorithm(object):
             tmpm = m.copy()
             tmpm.axpy(alpha, s) 
 
-            p = phi(alpha) 
+            p = obj(tmpm)
             djs = obj.derivative(tmpm).apply(s)
             return p, djs
 

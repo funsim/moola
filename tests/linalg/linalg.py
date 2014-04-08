@@ -15,3 +15,5 @@ assert abs(dg.primal_norm() - 2) < 1e-10
 pdg = dg.primal()
 diff = (pg - pdg).norm()
 assert abs(diff) < 1e-10
+
+print events

@@ -64,6 +64,30 @@ class DolfinVector(Vector):
         return self.__class__(self.data.copy(deepcopy=True))
 
 
+class Cache(object):
+    M = None
+    M_solver = None
+
+    def mass_matrix(self, V):
+        if self.M is None or True:
+            u = dolfin.TrialFunction(V)
+            v = dolfin.TestFunction(V)
+            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
+            self.M = M
+        return self.M
+
+    def mass_solve(self, V, x, b):
+        if self.M_solver is None or True:
+            M = self.mass_matrix(V)
+            M_solver = dolfin.LUSolver(M)
+            M_solver.parameters["reuse_factorization"] = True
+            self.M_solver = M_solver
+
+        self.M_solver.solve(x, b)
+
+
+cache = Cache()
+
 class DolfinPrimalVector(DolfinVector):
     """ A class for representing primal vectors. """
 
@@ -72,13 +96,9 @@ class DolfinPrimalVector(DolfinVector):
 
         events.increment("Primal -> dual map")
         if isinstance(self.data, dolfin.Function):
-
             V = self.data.function_space()
-            u = dolfin.TrialFunction(V)
-            v = dolfin.TestFunction(V)
-            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
 
-            primal_vec = M * self.data.vector()
+            primal_vec = cache.mass_matrix(V) * self.data.vector()
             primal = dolfin.Function(V, primal_vec)
 
             return DolfinDualVector(primal)
@@ -90,8 +110,9 @@ class DolfinPrimalVector(DolfinVector):
         assert isinstance(vec, DolfinPrimalVector)
         events.increment("Inner product")
 
-        return dolfin.assemble(dolfin.inner(self.data, vec.data)*dolfin.dx)
-
+        V = self.data.function_space()
+        v = cache.mass_matrix(V) * self.data.vector()
+        return v.inner(self.data.vector())
 
     def norm(self):
         """ Computes the vector norm induced by the inner product. """
@@ -113,14 +134,10 @@ class DolfinDualVector(DolfinVector):
         events.increment("Dual -> primal map")
 
         if isinstance(self.data, dolfin.Function):
-
             V = self.data.function_space()
-            u = dolfin.TrialFunction(V)
-            v = dolfin.TestFunction(V)
-            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
 
             dual = dolfin.Function(V)
-            dolfin.solve(M, dual.vector(), self.data.vector())
+            cache.mass_solve(V, dual.vector(), self.data.vector())
 
             return DolfinPrimalVector(dual)
         else:

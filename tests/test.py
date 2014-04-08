@@ -10,7 +10,9 @@ import time
 from optparse import OptionParser
 
 test_cmds = {"memoize_functional": "py.test memoize_functional.py",
-             "hash_dolfin": "py.test hash_dolfin.py"}
+             "hash_dolfin": "py.test hash_dolfin.py",
+             "linalg": "py.test linalg.py",
+            }
 
 parser = OptionParser()
 parser.add_option("-n", type="int", dest="num_procs", default = 1, help = "To run on N cores, use -n N; to use all processors available, run test.py -n 0.")

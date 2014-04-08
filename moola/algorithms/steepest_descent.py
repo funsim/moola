@@ -70,23 +70,7 @@ class SteepestDescent(OptimisationAlgorithm):
                 break
             self.display(it, j, j_prev, grad)
 
-            # Define the real-valued reduced function in the s-direction 
-            def phi(alpha):
-                tmp = m.copy()
-                tmp.axpy(-alpha, grad)
-
-                return obj(tmp)
-
-            def phi_dphi(alpha):
-                tmp = m.copy()
-                tmp.axpy(-alpha, grad)
-
-                j = obj(tmp) 
-                djs = -obj.derivative(tmp).apply(grad)
-
-                return j, djs
-
-            alpha = self.ls.search(phi, phi_dphi)
+            alpha = self.do_linesearch(obj, m, -grad)
 
             # update m and j
             m = m.copy()  # FIXME: Why do I need this

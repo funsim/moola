@@ -38,28 +38,6 @@ class NewtonCG(OptimisationAlgorithm):
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
 
-    def do_linesearch(self, obj, m, s):
-        ''' Performs a linesearch on obj starting from m in direction s. '''
-
-        # Define the real-valued reduced function in the s-direction 
-        def phi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            return obj(tmpm)
-
-        def phi_dphi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            p = phi(alpha) 
-            djs = obj.derivative(tmpm).apply(s)
-            return p, djs
-
-        # Perform the line search
-        alpha = self.ls.search(phi, phi_dphi)
-        return alpha
-
     def solve(self, problem, xk):
         ''' Solves the optimisation problem with the Fletcher-Reeves method. 
             Arguments:

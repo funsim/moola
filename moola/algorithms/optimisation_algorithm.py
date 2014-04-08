@@ -14,34 +14,27 @@ class OptimisationAlgorithm(object):
         ''' Prints out a description of the algorithm settings. '''
         raise NotImplementedError, 'OptimisationAlgorithm.__str__ is not implemented'
     
-    def perform_line_search(self, xk, dk):
-        '''
-        Performs a line search for a new minimum.
-        xk is the current control point
-        pk is the direction of the search
+    def do_linesearch(self, obj, m, s):
+        ''' Performs a linesearch on obj starting from m in direction s. '''
 
-        This function should return a triple, consisting of:
-        The computed stepsize ak
-        The objective evaluated at xk + ak * dk
-        The derivative at xk + ak * dk, if computed
-        '''
-        p_last = None
-        djs = None
-        
+        # Define the real-valued reduced function in the s-direction 
         def phi(alpha):
-            tmpx = xk.copy()
-            tmpx.axpy(alpha, pk)
-            return self.problem.obj(tmpx)
+            tmpm = m.copy()
+            tmpm.axpy(alpha, s) 
+
+            return obj(tmpm)
 
         def phi_dphi(alpha):
-            tmpx = xk.copy()
-            tmpx.axpy(alpha, pk)
-            p = p_last = phi(alpha) 
-            djs = self.problem.obj.derivative(tmpx)(pk)
+            tmpm = m.copy()
+            tmpm.axpy(alpha, s) 
+
+            p = phi(alpha) 
+            djs = obj.derivative(tmpm).apply(s)
             return p, djs
 
-        ak, Jnew, DJnew = self.ls.search(phi, phi_dphi)
-        return float(ak), Jk, DJk # TODO: numpy.float64 does not play nice with moola types
+        # Perform the line search
+        alpha = self.ls.search(phi, phi_dphi)
+        return float(alpha)
 
     def check_convergence(self, it, J, oldJ, g):
         s = 0

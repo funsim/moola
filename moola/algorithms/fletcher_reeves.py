@@ -20,8 +20,9 @@ class FletcherReeves(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-	if tol is not None:
-	    raise ValueError, 'tol argument not supported. Must be None'
+        if tol is not None:
+            print 'Warning: tol argument not supported. Will be ignored.'
+
 	self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
@@ -37,28 +38,6 @@ class FletcherReeves(OptimisationAlgorithm):
         s += "Line search:\t\t %s\n" % self.line_search 
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
-
-    def do_linesearch(self, obj, m, s):
-        ''' Performs a linesearch on obj starting from m in direction s. '''
-
-        # Define the real-valued reduced function in the s-direction 
-        def phi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            return obj(tmpm)
-
-        def phi_dphi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            p = phi(alpha) 
-            djs = obj.derivative(tmpm).apply(s)
-            return p, djs
-
-        # Perform the line search
-        alpha = self.ls.search(phi, phi_dphi)
-        return alpha
 
     def solve(self, problem, m):
         ''' Solves the optimisation problem with the Fletcher-Reeves method. 

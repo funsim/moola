@@ -81,9 +81,9 @@ if __name__ == "__main__":
 
     m_opt = sol['Optimizer'].data
     compute_errors(u, m_opt)
+    print moola.events
 
     if sol["Functional value at optimizer"] is not None:
         assert abs(sol["Functional value at optimizer"]) < 1e-9
     assert sol["Number of iterations"] == 1
 
-    print moola.events

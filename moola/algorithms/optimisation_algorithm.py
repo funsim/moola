@@ -17,24 +17,33 @@ class OptimisationAlgorithm(object):
     def do_linesearch(self, obj, m, s):
         ''' Performs a linesearch on obj starting from m in direction s. '''
 
-        # Define the real-valued reduced function in the s-direction 
-        def phi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
+        m_new = m.copy()
 
-            return obj(tmpm)
+        def update_m_new(alpha):
+            if update_m_new.alpha_new != alpha:
+                m_new.assign(m)
+                m_new.axpy(alpha, s) 
+                update_m_new.alpha_new = alpha
+        update_m_new.alpha_new = 0
+
+        # Define the real-valued functions in the s-direction 
+        def phi(alpha):
+            update_m_new(alpha)
+
+            return obj(m_new)
 
         def phi_dphi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
+            update_m_new(alpha)
 
-            p = obj(tmpm)
-            djs = obj.derivative(tmpm).apply(s)
+            p = obj(m_new)
+            djs = obj.derivative(m_new).apply(s)
             return p, djs
 
         # Perform the line search
         alpha = self.ls.search(phi, phi_dphi)
-        return float(alpha)
+
+        update_m_new(alpha)
+        return m_new, float(alpha)
 
     def check_convergence(self, it, J, oldJ, g):
         s = 0

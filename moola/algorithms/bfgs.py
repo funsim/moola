@@ -157,9 +157,8 @@ class BFGS(OptimisationAlgorithm):
             pk = - (Hk * dJ_old)
 
             # do a line search and update
-            ak = self.do_linesearch(obj, xk, pk)
+            xk, ak = self.do_linesearch(obj, xk, pk)
             sk = ak * pk
-            xk += sk
             
             J, oldJ = obj(xk), J # FIXME: too many calls
 

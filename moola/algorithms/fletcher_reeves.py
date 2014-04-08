@@ -63,10 +63,7 @@ class FletcherReeves(OptimisationAlgorithm):
         while self.check_convergence(it, None, None, dj_grad) == 0:
             self.display(it, None, None, dj_grad)
             # Perform the line search
-            alpha = self.do_linesearch(obj, m, s)
-
-            # Update m
-            m.axpy(alpha, s)
+            m, alpha = self.do_linesearch(obj, m, s)
 
             # Reevaluate the gradient
             dj = obj.derivative(m)

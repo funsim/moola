@@ -70,13 +70,8 @@ class SteepestDescent(OptimisationAlgorithm):
                 break
             self.display(it, j, j_prev, grad)
 
-            alpha = self.do_linesearch(obj, m, -grad)
-
-            # update m and j
-            m = m.copy()  # FIXME: Why do I need this
-            m.axpy(-alpha, grad)
-            j_prev = j
-            j = obj(m)
+            m, alpha = self.do_linesearch(obj, m, -grad)
+            j_prev, j = j, obj(m)
 
             # Update the iterate counter
             it += 1

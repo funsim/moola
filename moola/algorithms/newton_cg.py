@@ -95,9 +95,9 @@ class NewtonCG(OptimisationAlgorithm):
                 dj = betaj * dj -rj.primal()
                 iit +=1
             #
-            alpha = self.do_linesearch(obj, xk, pk)
-            xk.axpy(alpha, pk)
+            xk, alpha = self.do_linesearch(obj, xk, pk)
             it +=1
+
         self.display(it, None, None, rj)
         sol = {'Optimizer': xk,
                'Number of iterations': it,

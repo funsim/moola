@@ -7,4 +7,4 @@ Install with:
 
 ``pip install moola``
 
-You need to have Dolfin and dolfin-adjoint installed to run the tests.
+You need to have `FEniCS <www.fenicsproject.org>` and `dolfin-adjoint <dolfin-adjoint.org>` installed to run the tests.

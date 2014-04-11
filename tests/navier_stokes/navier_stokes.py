@@ -5,30 +5,12 @@ import moola
 set_log_level(ERROR)
 
 # Create a rectangle with a circular hole.
-rect = Rectangle(0, 0, 30, 10) 
-circ = Circle(10, 5, 2.5)
-domain = rect - circ
-N = 25  # Mesh resolution
-mesh = Mesh(domain, N)
-
-def ref(mesh):
-    cf = CellFunction("bool", mesh)
-    subdomain1 = CompiledSubDomain('pow((x[0] - 10), 2) + pow((x[1] - 5), 2) < pow(3.5, 2)')
-    subdomain2 = CompiledSubDomain('pow((x[1] - 5), 2) < pow(1, 2)')
-    subdomain1.mark(cf, True)
-    subdomain2.mark(cf, True)
-    return refine(mesh, cf)
-
-mesh = ref(mesh)
-mesh = ref(mesh)
-
-#plot(mesh)
-#interactive()
+mesh = Mesh("mesh/mesh.xml")
 
 # Define function spaces (P2-P1)
 V = VectorFunctionSpace(mesh, "CG", 2)  # Velocity
 Q = FunctionSpace(mesh, "CG", 1)        # Pressure
-D = FunctionSpace(mesh, "DG", 1)        # Control space
+D = FunctionSpace(mesh, "DG", 0)        # Control space
 W = MixedFunctionSpace([V, Q])
 
 # Define test and solution functions
@@ -92,5 +74,5 @@ f.assign(m_opt)
 solve(F == 0, s, bcs=bcu+bcp)
 print "Functional value at optimizier: ", assemble(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx)
 
-#plot(m_opt, interactive=True)
+plot(m_opt, interactive=True)
 print moola.events

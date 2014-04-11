@@ -1,7 +1,7 @@
 """ Solves the Cauchy optimal control problem 
 
 Reference:
-Section 7.1.1, pp 222. in J. Sundnes et al (2006). Computing the Eletrical Activity in the Heart. Springer Verlag.
+Example 4, Section 7.1.1, pp 222. in J. Sundnes et al (2006). Computing the Eletrical Activity in the Heart. Springer Verlag.
 """
 
 from dolfin import *
@@ -14,7 +14,7 @@ except ImportError:
     info_blue("moola bindings unavailable, skipping test")
     sys.exit(0)
 
-res = 64
+res = 128
 mesh = UnitSquareMesh(res, res)
 
 dolfin.set_log_level(ERROR)
@@ -48,6 +48,7 @@ h = CellSize(mesh)
 
 def solve_pde(u, g):
     gamma = Constant(10)
+    # Weak form of Laplace problem with Nitsche boundary condition.
     F = inner(grad(w), grad(v))*dx - inner(grad(w), n)*v*ds(3) - inner(grad(v), n)*(w-g)*ds(3) + gamma/h*(w-g)*v*ds(3)
     solve(lhs(F) == rhs(F), u)
 
@@ -55,11 +56,13 @@ def solve_pde(u, g):
 solve_pde(u, g)
 
 # ========= Example settings ===============
-#d = sin(pi*x[0])            # Data for example 3
-d = cos(pi*x[0]) / cosh(pi) # Data for example 4
+d = cos(pi*x[0]) / cosh(pi) # Data
 alpha = Constant(0)         # Regularisation multiplier
-delta = Constant(0)         # Perturbation multiplier
+delta = Constant(2.0)       # Perturbation multiplier
 d += delta*cos(5*pi*x[0])
+
+g_ana = cos(pi*x[0])
+g_ana += 3.32*10**6*delta*cos(5*pi*x[0])
 
 J = Functional((inner(u-d, u-d))*ds(1) + alpha*g**2*ds(3))
 m = SteadyParameter(g)
@@ -67,18 +70,20 @@ m = SteadyParameter(g)
 rf = ReducedFunctional(J, m)
 
 problem = rf.moola_problem()
-#solver = moola.BFGS(tol=None, options={'gtol': 1e-11, 'maxiter': 20, 'mem_lim': 20})
-solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
+solver = moola.BFGS(tol=None, options={'gtol': 1e-11, 'maxiter': 20, 'mem_lim': 20})
+#solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
 g_moola = moola.DolfinPrimalVector(g)
 sol = solver.solve(problem, g_moola)
 g_opt = sol['Optimizer'].data
 
-#g_opt = minimize(rf, method="BFGS", tol=1e-09, options={"xtol": 1e-100})
+#g_opt = minimize(rf, method="L-BFGS-B", tol=1e-09, options={"xtol": 1e-100})
 
-plot(d, title="d", mesh=mesh)
 solve_pde(u, g_opt)
-plot(u, title="u*")
-interactive()
+plot(d, title="Data", mesh=mesh)
+plot(g_ana, title="Optimal boundary condition", mesh=mesh)
+plot(u, title="Optimised solution")
 
 print "Final J = ", assemble(inner(u-d, u-d)*ds(1))
-print "||g* - g_analytic|| = ", assemble((g_opt - cos(pi*x[0]))**2*ds(3))**0.5
+print "||g* - g_analytic|| / ||g_analytic|| = ", (assemble((g_opt - g_ana)**2*ds(3))**0.5 / assemble(g_ana**2*ds(3))**0.5)
+
+interactive()

@@ -2,13 +2,6 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-try:
-    import moola
-except ImportError:
-    import sys
-    info_blue("moola bindings unavailable, skipping test")
-    sys.exit(0)
-
 dolfin.set_log_level(ERROR)
 parameters['std_out_all_processes'] = False
 x = triangle.x
@@ -69,19 +62,43 @@ if __name__ == "__main__":
     # Run the optimisation 
     rf = ReducedFunctional(J, InitialConditionParameter(m, value=m))
 
-    problem = rf.moola_problem()
-    #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
-    solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
-    m_moola = moola.DolfinPrimalVector(m)
-    sol = solver.solve(problem, m_moola)
+    opt_package = "moola" # Choose from moola, scipy, ipopt
 
-    #minimize(rf, method="Newton-CG", options={"xtol": 1e-100})
+    if opt_package == "moola":
+        try:
+            import moola
+        except ImportError:
+            import sys
+            info_blue("moola bindings unavailable, skipping test")
+            sys.exit(0)
 
-    m_opt = sol['Optimizer'].data
-    compute_errors(u, m_opt)
-    print moola.events
+        problem = rf.moola_problem()
+        solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
+        #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
+        m_moola = moola.DolfinPrimalVector(m)
+        sol = solver.solve(problem, m_moola)
+        m_opt = sol['Optimizer'].data
 
-    if sol["Functional value at optimizer"] is not None:
-        assert abs(sol["Functional value at optimizer"]) < 1e-9
-    assert sol["Number of iterations"] == 1
+        print moola.events
+
+        if sol["Functional value at optimizer"] is not None:
+            assert abs(sol["Functional value at optimizer"]) < 1e-9
+        assert sol["Number of iterations"] == 1
+
+    elif opt_package == "scipy":
+        #m_opt = minimize(rf, method="Newton-CG", options={"xtol": 1e-100})
+        m_opt = minimize(rf, tol=1e-100, method="L-BFGS-B", options={"xtol": 1e-100, "maxiter": 100})
+
+    elif opt_package == "ipopt":
+        import pyipopt
+
+        rfn  = ReducedFunctionalNumPy(rf)
+        nlp = rfn.pyipopt_problem()
+        m_opt = nlp.solve(full=False)
+
+
+    #plot(m_opt, interactive=True)
+    ctrl_err, state_err = compute_errors(u, m_opt)
+    assert ctrl_err < 3e-2
+    assert state_err < 1e-4
 

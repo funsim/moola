@@ -17,7 +17,6 @@ class LinearOperator(object):
 
 
 def dual_to_primal(x):
-    print "in matvec"
     return x.primal()
  
 
@@ -110,23 +109,6 @@ class BFGS(OptimisationAlgorithm):
         s += "Line search:\t\t %s\n" % self.line_search 
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
-
-    def perform_line_search(self, xk, pk):
-        def phi(alpha):
-            tmpx = xk.copy()
-            tmpx.axpy(alpha, pk)
-            return self.problem.obj(tmpx)
-
-        def phi_dphi(alpha):
-            tmpx = xk.copy()
-            tmpx.axpy(alpha, pk)
-            j = self.problem.obj(tmpx)
-            djs = self.problem.obj.derivative(tmpx).apply(pk)
-            return j, djs
-
-        ak = self.ls.search(phi, phi_dphi)
-        return float(ak) # numpy.float64 does not play nice with moola types
-        
 
     def solve(self, problem, xinit):
         '''

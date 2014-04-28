@@ -58,11 +58,11 @@ solve_pde(u, g)
 # ========= Example settings ===============
 d = cos(pi*x[0]) / cosh(pi) # Data
 alpha = Constant(0)         # Regularisation multiplier
-delta = Constant(2.0)       # Perturbation multiplier
+delta = Constant(0.5)       # Perturbation multiplier
 d += delta*cos(5*pi*x[0])
 
 g_ana = cos(pi*x[0])
-g_ana += 3.32*10**6*delta*cos(5*pi*x[0])
+g_ana += cosh(5*pi)*delta*cos(5*pi*x[0])
 
 J = Functional((inner(u-d, u-d))*ds(1) + alpha*g**2*ds(3))
 m = SteadyParameter(g)
@@ -70,8 +70,10 @@ m = SteadyParameter(g)
 rf = ReducedFunctional(J, m)
 
 problem = rf.moola_problem()
-solver = moola.BFGS(tol=None, options={'gtol': 1e-11, 'maxiter': 20, 'mem_lim': 20})
-#solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
+solver = moola.BFGS(options={'tol': None, 'gtol': 1e-08, 'maxiter': 40, 'mem_lim': 5})
+#solver = moola.NewtonCG(options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
+#solver = moola.FletcherReeves(options={'gtol': 1e-10, 'maxiter': 40})
+#solver = moola.SteepestDescent(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 40})
 g_moola = moola.DolfinPrimalVector(g)
 sol = solver.solve(problem, g_moola)
 g_opt = sol['Optimizer'].data

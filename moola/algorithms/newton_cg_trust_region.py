@@ -120,9 +120,11 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         Dk = self.tr_D0
 
         while True:
-            print "Iteration ", opt_iter
-            if opt_iter >= self.maxiter:
+            res = obj.derivative(xk)
+            if self.check_convergence(opt_iter, None, None, res):
                 break
+
+            self.display(opt_iter, None, None, res)
 
             # compute trust region guess
             pk = self.compute_pk_cg_steihaug(obj, xk, Dk)
@@ -133,7 +135,7 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
                 Dk *= 1./4
 
             elif rhok > 3./4 and pk.norm() == Dk:
-                    Dk = min(2*Dk, self.tr_Dmax)
+                Dk = min(2*Dk, self.tr_Dmax)
 
             if rhok > self.eta:
                 xk += pk
@@ -141,7 +143,7 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
             opt_iter += 1
             
 
-        #self.display(opt_iter, None, None, None)
+        self.display(opt_iter, None, None, res)
         sol = {'Optimizer': xk,
                'Number of iterations': opt_iter,
                'Functional value at optimizer': None }

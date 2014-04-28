@@ -1,15 +1,13 @@
 from optimisation_algorithm import *
-from IPython import embed
-class NewtonCG(OptimisationAlgorithm):
+class NewtonCGTrustRegion(OptimisationAlgorithm):
     ''' 
-    An implementation of the Fletcher-Reeves method 
-    described in Wright 2006, section 5.2. 
+    An implementation of the trust region Newton-CG algorithm
+    described in Wright 2006, chapter 7. 
     '''
-    def __init__(self, options={}, **args):
+    def __init__(self, tol=None, options={}, **args):
         '''
-        Initialises the Newton CG method. The valid options are:
+        Initialises the trust region Newton CG method. The valid options are:
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
-            - tol: Not supported yet - must be None. 
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
@@ -20,7 +18,9 @@ class NewtonCG(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        self.tol = options.get("tol", None)
+        if tol is not None:
+            print 'tol argument not supported. Will be ignored.'
+            self.tol = tol
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)
@@ -28,9 +28,6 @@ class NewtonCG(OptimisationAlgorithm):
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
-
-        if self.tol is not None:
-            print 'tol parameter not yet supported. Will be ignored.'
 
         # method specific options:
         self.ncg_reltol  = options.get("ncg_reltol", .5)

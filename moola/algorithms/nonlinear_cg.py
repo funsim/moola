@@ -5,7 +5,7 @@ class NonLinearCG(OptimisationAlgorithm):
     An implementation of the Fletcher-Reeves method 
     described in Wright 2006, section 5.2. 
     '''
-    def __init__(self, tol=None, options={}, **args):
+    def __init__(self, options={}, **args):
         '''
         Initialises the Fletcher-Reeves mehtod. The valid options are:
          * tol: Not supported - must be None. 
@@ -20,9 +20,7 @@ class NonLinearCG(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        if tol is not None:
-            raise ValueError, 'tol argument not supported. Must be None'
-        self.tol = tol
+        self.tol = options.get("tol", None)
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)
@@ -30,6 +28,9 @@ class NonLinearCG(OptimisationAlgorithm):
         self.line_search_options = options.get("line_search_options", {'gtol':1e-1, 'xtol':1e-16})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
+
+        if self.tol is not None:
+            print 'tol paramter not yet supported.'
 
         # method-specific settings
         self.cg_scheme = options.get("cg_scheme", 'HZ')

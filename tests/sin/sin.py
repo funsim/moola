@@ -20,9 +20,9 @@ obj = MyFunctional()
 prob = Problem(obj)
 
 # Solve the problem with the steepest descent method
-options = {'gtol': 1e-16, 'tol': None, 'mem_lim':0}
+options = {'tol': 1e-200, 'gtol': 1e-16, 'tol': None, 'mem_lim':0}
 
-solver = SteepestDescent(tol=1e-200, options=options)
+solver = SteepestDescent(options=options)
 sol = solver.solve(prob, init_control.copy())
 assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
 assert sol["Number of iterations"] < 50

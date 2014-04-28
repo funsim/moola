@@ -4,14 +4,14 @@ class SteepestDescent(OptimisationAlgorithm):
     """
         Implements the steepest descent method. 
      """
-    def __init__(self, tol=1e-4, options={}, hooks={}, **args):
+    def __init__(self, options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
         Valid options are:
 
-         * tol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
+            - tol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
@@ -25,7 +25,7 @@ class SteepestDescent(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        self.tol = tol
+        self.tol = options.get("tol", 1e-4)
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)

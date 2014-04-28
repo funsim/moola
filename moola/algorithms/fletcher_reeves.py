@@ -5,11 +5,11 @@ class FletcherReeves(OptimisationAlgorithm):
     An implementation of the Fletcher-Reeves method 
     described in Wright 2006, section 5.2. 
     '''
-    def __init__(self, tol=None, options={}, **args):
+    def __init__(self, options={}, **args):
         '''
         Initialises the Fletcher-Reeves mehtod. The valid options are:
-         * tol: Not supported - must be None. 
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
+            - tol: Not supported yet - must be None. 
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
@@ -20,10 +20,8 @@ class FletcherReeves(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        if tol is not None:
-            print 'Warning: tol argument not supported. Will be ignored.'
 
-	self.tol = tol
+        self.tol = options.get("tol", None)
         self.gtol = options.get("gtol", 1e-4)
         self.maxiter = options.get("maxiter", 200)
         self.disp = options.get("disp", 2)
@@ -31,6 +29,9 @@ class FletcherReeves(OptimisationAlgorithm):
         self.line_search_options = options.get("line_search_options", {})
         self.ls = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
+
+        if self.tol is not None:
+            print 'Warning: tol argument not supported. Will be ignored.'
 
     def __str__(self):
         s = "Fletcher Reeves method.\n"

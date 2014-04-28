@@ -14,6 +14,5 @@ import problem
 import linesearch
 import algorithms
 import misc
-from IPython import embed
 
 from ui import *

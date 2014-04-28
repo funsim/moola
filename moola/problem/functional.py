@@ -11,7 +11,7 @@ class Functional(object):
             derivative, i.e. is a vector in the same space.
         '''
 
-        return self.derivative(x).riesz_representation()
+        return self.derivative(x).primal()
 
     def derivative(self, x):
         ''' Returns the derivative operator at x. '''

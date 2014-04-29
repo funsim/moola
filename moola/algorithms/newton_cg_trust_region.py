@@ -27,8 +27,8 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
             print 'tol parameter not yet supported. Will be ignored.'
 
         # method specific options:
-        self.tr_Dmax = options.get("ncg_Dmax", 1) # overall bound on the step lengths
-        self.tr_D0 = options.get("ncg_D0", 0.5*self.tr_Dmax) # current bound on the step length
+        self.tr_Dmax = options.get("ncg_Dmax", 1e5) # overall bound on the step lengths
+        self.tr_D0 = options.get("ncg_D0", 1) # current bound on the step length
         self.eta = options.get("eta", 1./8)
 
         assert 0 <= self.eta < 1./4

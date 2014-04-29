@@ -42,13 +42,6 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         return s
 
 
-    def mk(self, obj, xk, pk):
-        ''' Evaluates the quadratic approximation '''
-        if pk == 0:
-            return obj(xk)
-        else:
-            return obj(xk) + obj.derivative(xk).apply(pk) + 0.5 * obj.hessian(xk)(pk).apply(pk)
-
     def get_tau(self, obj, z, d, D, verify=True):
         """ Function to find tau such that p = pj + tau.dj, and ||p|| = D. """
 
@@ -75,18 +68,23 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         z.zero()
         r = obj.gradient(x)
         d = -r
-        eps = min(0.5, sqrt(r.norm()))*r.norm()
+        rtr = r.inner(r)
+        rnorm = rtr**0.5
+        eps = min(0.5, sqrt(rnorm))*rnorm  # Stopping criteria for CG
 
-        if r.norm() < eps:
+        if rnorm < eps:
+            print "CG solver converged"
             return z
 
         cg_iter = 0
         while True:
             print "CG iteration %s" % cg_iter
             cg_iter += 1
+
             Hd = obj.hessian(x)(d)
             curv = Hd.apply(d)
 
+            # Curvatur test 
             if curv <= 0:
                 print "curv <= 0.0"
                 taup, taum = self.get_tau(obj, z, d, D)
@@ -94,31 +92,33 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
                 pm = z + taum*d
 
                 if self.mk(obj, xk, pp) <= self.mk(obj, xk, pm):
-                    return pp
+                    return pp, True
                 else:
-                    return pm
+                    return pm, True
 
-            rtr = r.inner(r)
             alpha = rtr / curv
             z_old = z.copy()
             z.axpy(alpha, d)
-            print "|z_%i| = %f" % (cg_iter, z.norm())
+            znorm = z.norm()
+            print "|z_%i| = %f" % (cg_iter, znorm)
 
-            if z.norm() >= D:
+            # Trust region boundary test
+            if znorm >= D:
                 print "|z| >= Delta"
                 tau = self.get_tau(obj, z_old, d, D)[0]
                 assert tau >= 0
-                return z_old + tau*d
+                return z_old + tau*d, True
 
             r.axpy(alpha, Hd.primal())
-
-            if r.norm() < eps:
-                print "|r| < length_test"
-                return z
-
             rtr, rtr_old = r.inner(r), rtr
-            beta = rtr / rtr_old
+            rnorm = rtr**0.5
 
+            # CG convergence test
+            if rnorm < eps:
+                print "CG solver converged"
+                return z, False
+
+            beta = rtr / rtr_old
             d = -r + beta*d
 
 
@@ -145,20 +145,26 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
 
             self.display(opt_iter, None, None, res)
 
-            # compute trust region guess
-            pk = self.compute_pk_cg_steihaug(obj, xk, Dk)
-            rhok = (obj(xk) - obj(xk + pk)) / (self.mk(obj, xk, 0) - self.mk(obj, xk, pk))
+            # Compute trust region point
+            pk, is_cauchy_point = self.compute_pk_cg_steihaug(obj, xk, Dk)
+
+            # Evaluate trust region performance
+            objxk = obj(xk)
+            mkxkpk = objxk + obj.derivative(xk).apply(pk) + 0.5 * obj.hessian(xk)(pk).apply(pk)
+            objxkpk = obj(xk + pk)
+
+            rhok = (objxk - objxkpk) / (objxk - mkxkpk)
 
             if rhok < 1./4:
                 Dk *= 1./4
                 print "Decreasing trust region radius to %f." % Dk
 
-            elif rhok > 3./4 and abs(pk.norm() - Dk)/Dk < 1e-8:
+            elif rhok > 3./4 and is_cauchy_point:
                 Dk = min(2*Dk, self.tr_Dmax)
                 print "Increasing trust region radius to %f." % Dk
 
             if rhok > self.eta:
-                xk += pk
+                xk.axpy(1., pk)
                 print "Trust region step accepted."
             else:
                 print "Rejecting step. Reason: trust region step did not reduce objective."
@@ -171,5 +177,3 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
                'Number of iterations': opt_iter,
                'Functional value at optimizer': None }
         return sol
-                
- 

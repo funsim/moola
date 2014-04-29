@@ -10,6 +10,7 @@ class MyFunctional(Functional):
     def __call__(self, val):
         x, y = val.data
         r = (1 - x)**2 + 100*(y - x**2)**2
+        events.increment("Functional evaluation")
         return r
 
     def derivative(self, val):
@@ -20,6 +21,7 @@ class MyFunctional(Functional):
         dy = 100 * 2 * (y - x**2)
         dr = (dx, dy)
 
+        events.increment("Derivative evaluation")
         return NumpyDualVector(dr)
 
     def hessian(self, val):
@@ -30,6 +32,7 @@ class MyFunctional(Functional):
             dxy = -400.*x
             dyy = 200.
             d2v = (dxx * v[0] + dxy * v[1], dxy*v[0] +dyy*v[1] )
+            events.increment("Hessian evaluation")
             return NumpyDualVector(d2v)
         return hes
                 
@@ -53,12 +56,14 @@ options = {'disp':2, 'tol': None, 'gtol': 1e-16, 'maxiter': 200, 'mem_lim': 2}
 
 # Solve the problem with the Fletcher-Reeves method
 #solver = NonLinearCG(options=options)
+#solver = TrustRegionNewtonCG(options=options)
 solver = NewtonCG(options=options)
 sol = solver.solve(prob, x_init.copy())
 #assert max(abs(sol["Optimizer"].data + x_opt)) < f_opt + 1e-9
 #assert sol["Number of iterations"] < 50
 print sol['Optimizer'].data
 #print '\n\n\n'
+print events
 
 # Solve the problem with the BFGS method
 #solver = BFGS(options=options)

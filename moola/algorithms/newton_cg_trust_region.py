@@ -49,47 +49,66 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         else:
             return obj(xk) + obj.derivative(xk).apply(pk) + 0.5 * obj.hessian(xk)(pk).apply(pk)
 
-    def get_tau(self, obj, z, d, delta):
-        """ Function to find tau such that p = pj + tau.dj, and ||p|| = delta. """
+    def get_tau(self, obj, z, d, D, verify=True):
+        """ Function to find tau such that p = pj + tau.dj, and ||p|| = D. """
 
+        
         dot_z_d = z.inner(d)
         len_d_sqrd = d.inner(d)
-        t = sqrt(dot_z_d**2 - len_d_sqrd * (z.inner(z) - delta**2)) / len_d_sqrd
+        len_z_sqrd = z.inner(z)
 
-        taup = - dot_z_d + t
-        taum = - dot_z_d - t
+        t = sqrt(dot_z_d**2 - len_d_sqrd * (len_z_sqrd - D**2))
+
+        taup = (- dot_z_d + t) / len_d_sqrd
+        taum = (- dot_z_d - t) / len_d_sqrd
+
+        if verify:
+            eps = 1e-8
+            if abs((z+taup*d).norm()-D)/D > eps or abs((z+taum*d).norm()-D)/D > eps:
+                raise ArithmeticError, "Tau could not be computed accurately due to numerical errors."
+
         return taup, taum
 
-    def compute_pk_cg_steihaug(self, obj, x, D, eps=1e-10):
+    def compute_pk_cg_steihaug(self, obj, x, D):
         ''' Solves min_pk fk + grad fk(p) + 0.5*p^T H p using the CG Steighaug method '''  
         z = x.copy()
         z.zero()
         r = obj.gradient(x)
         d = -r
+        eps = min(0.5, sqrt(r.norm()))*r.norm()
 
         if r.norm() < eps:
             return z
 
         cg_iter = 0
-        while cg_iter < 20:
+        while True:
+            print "CG iteration %s" % cg_iter
             cg_iter += 1
             Hd = obj.hessian(x)(d)
             curv = Hd.apply(d)
 
             if curv <= 0:
-                tau = self.get_tau(obj, z, d, D)[0]
-                print "curv <= 0.0, hence tau = " + repr(tau)
-                return x + tau*d
+                print "curv <= 0.0"
+                taup, taum = self.get_tau(obj, z, d, D)
+                pp = z + taup*d
+                pm = z + taum*d
+
+                if self.mk(obj, xk, pp) <= self.mk(obj, xk, pm):
+                    return pp
+                else:
+                    return pm
 
             rtr = r.inner(r)
             alpha = rtr / curv
             z_old = z.copy()
             z.axpy(alpha, d)
+            print "|z_%i| = %f" % (cg_iter, z.norm())
 
             if z.norm() >= D:
+                print "|z| >= Delta"
                 tau = self.get_tau(obj, z_old, d, D)[0]
-                print "|z| >= Delta, hence tau = " + repr(tau)
-                return x + tau*d
+                assert tau >= 0
+                return z_old + tau*d
 
             r.axpy(alpha, Hd.primal())
 
@@ -128,17 +147,21 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
 
             # compute trust region guess
             pk = self.compute_pk_cg_steihaug(obj, xk, Dk)
-
             rhok = (obj(xk) - obj(xk + pk)) / (self.mk(obj, xk, 0) - self.mk(obj, xk, pk))
 
             if rhok < 1./4:
                 Dk *= 1./4
+                print "Decreasing trust region radius to %f." % Dk
 
-            elif rhok > 3./4 and pk.norm() == Dk:
+            elif rhok > 3./4 and abs(pk.norm() - Dk)/Dk < 1e-8:
                 Dk = min(2*Dk, self.tr_Dmax)
+                print "Increasing trust region radius to %f." % Dk
 
             if rhok > self.eta:
                 xk += pk
+                print "Trust region step accepted."
+            else:
+                print "Rejecting step. Reason: trust region step did not reduce objective."
 
             opt_iter += 1
             

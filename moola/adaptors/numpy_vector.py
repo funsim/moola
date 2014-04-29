@@ -1,4 +1,5 @@
 from moola.linalg import Vector
+from moola.misc import events
 from math import sqrt
 import numpy as np
 
@@ -50,11 +51,13 @@ class NumpyPrimalVector(NumpyVector):
     def dual(self):
         """ Returns the dual representation. """
 
+        events.increment("Primal -> dual map")
         return NumpyDualVector(self.data.copy())
 
     def inner(self, vec):
         """ Computes the inner product with vec. """
         assert isinstance(vec, NumpyPrimalVector)
+        events.increment("Inner product")
 
         return float(np.dot(self.data, vec.data))
 
@@ -75,6 +78,7 @@ class NumpyDualVector(NumpyVector):
     
     def primal(self):
         """ Returns the primal representation. """
+        events.increment("Dual -> primal map")
 
         return NumpyPrimalVector(self.data.copy())
 

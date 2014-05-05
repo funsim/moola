@@ -9,6 +9,11 @@ import dolfin_adjoint
 #        num = multiprocessing.cpu_count()
 #        args[:] = ["-n", str(num)] + args
 
+del dolfin_adjoint.test_initial_condition_adjoint
+del dolfin_adjoint.test_initial_condition_tlm
+del dolfin_adjoint.test_scalar_parameters_adjoint
+del dolfin_adjoint.test_initial_condition_adjoint_cdiff
+del dolfin_adjoint.test_scalar_parameter_adjoint
 
 default_params = dolfin.parameters.copy()
 def pytest_runtest_setup(item):

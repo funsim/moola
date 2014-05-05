@@ -1,5 +1,5 @@
 from optimisation_algorithm import *
-
+from numpy import sqrt
 class FletcherReeves(OptimisationAlgorithm):
     ''' 
     An implementation of the Fletcher-Reeves method 
@@ -27,7 +27,7 @@ class FletcherReeves(OptimisationAlgorithm):
         self.disp = options.get("disp", 2)
         self.line_search = options.get("line_search", "strong_wolfe")
         self.line_search_options = options.get("line_search_options", {})
-        self.ls = get_line_search_method(self.line_search, self.line_search_options)
+        self.linesearch = get_line_search_method(self.line_search, self.line_search_options)
         self.callback = options.get("callback", None)
 
         if self.tol is not None:
@@ -61,8 +61,11 @@ class FletcherReeves(OptimisationAlgorithm):
         # Start the optimisation loop
         it = 0
 
-        while self.check_convergence(it, None, None, dj_grad) == 0:
-            self.display(it, None, None, dj_grad)
+        while True:
+            if it >= self.maxiter or sqrt(b) < self.gtol:
+                break
+            print "it = {}\t|grad J| = {}".format(it, sqrt(b)) 
+            #self.display(it, None, None, dj_grad)
             # Perform the line search
             m, alpha = self.do_linesearch(obj, m, s)
 
@@ -85,7 +88,8 @@ class FletcherReeves(OptimisationAlgorithm):
                 self.callback(None, s, m)
 
         # Print the reason for convergence
-        self.display(it, None, None, dj_grad)
+        print 'converged.'
+        print "it = {}\t|grad J| = {}".format(it, sqrt(b)) 
         sol = Solution({"Optimizer": m,
                             "Number of iterations": it})
         return sol

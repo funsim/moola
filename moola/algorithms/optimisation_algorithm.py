@@ -7,12 +7,53 @@ class OptimisationAlgorithm(object):
     All implementations of optimisation algorithms should use this is a base class.
     '''
     def __init__(self, tol, options={}, **args):
-        ''' Initialises the steepest descent algorithm. '''
+        ''' Initialises the optmization algorithm. '''
         raise NotImplementedError, 'OptimisationAlgorithm.__init__ is not implemented'
 
     def __str__(self):
         ''' Prints out a description of the algorithm settings. '''
         raise NotImplementedError, 'OptimisationAlgorithm.__str__ is not implemented'
+
+    
+    @classmethod
+    def default_options(cls):
+        # this should set any parameter that all algorithms needs to know.
+        default = {'display': 10,
+                   'maxiter': 100,}
+        return default
+    
+    def set_options(self, user_options):
+        # Update options with provided dictionary.
+        if not isinstance(user_options, dict):
+            raise TypeError("Options have to be set with a dictionary object.")
+        if hasattr(self,  'options'):
+            options = self.options
+        else:
+            options = self.default_options()
+        for key, val in user_options.iteritems():
+            if key not in options:
+                raise KeyError("'{}' not a valid setting for {}".format(key, self.__class__.__name__))
+            # TODO: check also that the provided value is admissible.
+            options[key] = val
+        self.options = options
+        return options
+
+    def display(self, text, level):
+        '''
+        Function for providing information to the user.
+        Only prints text if level is not smaller than the treshold setting.
+
+        Tentative level structuring:
+          0: no output (user may have provided a callback function to store or print data)
+          1: start / end of optimization loop
+          2: general information for each optimization loop, e.g. iterations number, gradient norm etc
+          3: specific information for each optimization loop, e.g. inner iteration loop information
+           :
+           :
+         10: debug
+        '''
+        if level <= self.options['display']:
+            print text
     
     def do_linesearch(self, obj, m, s):
         ''' Performs a linesearch on obj starting from m in direction s. '''
@@ -40,48 +81,46 @@ class OptimisationAlgorithm(object):
             return p, djs
 
         # Perform the line search
-        alpha = self.ls.search(phi, phi_dphi)
+        alpha = self.linesearch.search(phi, phi_dphi)
 
         update_m_new(alpha)
         return m_new, float(alpha)
 
-    def check_convergence(self, it, J, oldJ, g):
-        s = 0
+    def check_convergence(self):
+        '''
+        Unified convergence test for the implemented optimization algorithms.
+        '''
+        data = self.data
+        options = self.options
+        status = 0
+        if self.data['iteration'] >= self.options['maxiter']:
+            status = -1
+        if 'gtol' in options and options['gtol'] != None and 'grad_norm' in data:
+            if data['grad_norm'] < options['gtol']:
+                status = 1 
+        if 'jtol' in options and options['jtol'] != None and 'delta_J' in data:
+            if data['delta_J'] < options['jtol']:
+                status = 2
+        # TODO: implement more tests        
+        self.data['status'] = status
+        return status
+     
+    @property
+    def iter_status(self):
+        keys = ['iteration', 'objective', 'grad_norm', 'delta_J', 'delta_x']
+        return '\t'.join(['{} = {}:'.format(k, self.data[k]) for k in keys if k in self.data])
+        
+    @property
+    def convergence_status(self):
+        reasons = {-1: '\nMaximum number of iterations reached.\n',
+                    2: '\nTolerance reached: delta_j < jtol.\n',
+                    1: '\nTolerance reached: grad_norm < gtol.\n',
+                   -4: 'Linesearch failed.',
+                   -5: 'Algorithm breakdown.'}
+        return reasons[self.data['status']]
 
-        if it >= self.maxiter:
-            s = 1
-
-        elif g != None and g.primal_norm() < self.gtol != None:
-            s = 3
-
-        elif J != None and oldJ != None and self.tol != None:
-            if J == oldJ == 0:
-                s = 2
-            elif abs(1 - min(J/oldJ, oldJ/J)) <= self.tol:
-                s = 2
-
-
-        self.status = s
-        return self.status
-
-    def display(self,it, J, oldJ, grad):
-        deltaJ = oldJ -J if (oldJ is not None and J is not None) else None
-        msg = 'Iteration {0:d}' \
-            + ('\tJ = {1:e}' if J is not None else '')\
-            + ('\t|dJ| = {2:e}' if grad is not None else '')\
-            + ('\tdeltaJ = {3:e}' if deltaJ is not None else '') 
-        if self.status == 0 and self.disp > 1:
-            print(msg.format(it, J, grad.primal_norm(), deltaJ))
-        if self.status != 0 and self.disp > 0:
-            reasons = {1: '\nMaximum number of iterations reached.\n',
-                       2: '\nTolerance reached: |delta j| < tol.\n',
-                       3: '\nTolerance reached: |dJ| < gtol.\n',
-                       4: 'Linesearch failed.',
-                       5: 'Algorithm breakdown.'}
-            print(msg.format(it, J, grad.primal_norm(), deltaJ) + reasons[self.status] )
-            
     
-    def solve(self, problem, m):
+    def solve(self):
         ''' Solves the optimisation problem. 
             Arguments:
              * problem: The optimisation problem.
@@ -91,6 +130,26 @@ class OptimisationAlgorithm(object):
         '''
         raise NotImplementedError, 'OptimisationAlgorithm.solve is not implemented'
 
+    def update(self, d=None, **args):
+        if not hasattr(self, 'data'):
+            self.data = {}
+        if d is not None and hasattr(d, 'keys'):
+            self.data.update(d)
+        else:
+            self.data.update(**args)
+    def record_progress(self, **args):
+        if args == {}:
+            args = self.options['record']
+        if not hasattr(self, 'history'):
+            # then initialize it
+            self.history = {arg: [] for arg in args}
+        for arg in args:
+            self.history[arg].append(self.data[arg])
+            
+        
+    
+    
+    
 def get_line_search_method(line_search, line_search_options):
     ''' Takes a name of a line search method and returns its Python implementation as a function. '''
     if line_search == "strong_wolfe":

@@ -1,11 +1,12 @@
 from optimisation_algorithm import *
+from numpy import sqrt
 
 class NonLinearCG(OptimisationAlgorithm):
     ''' 
     An implementation of the Fletcher-Reeves method 
     described in Wright 2006, section 5.2. 
     '''
-    def __init__(self, options={}, **args):
+    def __init__(self, problem, initial_point = None, options={}, **args):
         '''
         Initialises the Fletcher-Reeves mehtod. The valid options are:
          * tol: Not supported - must be None. 
@@ -20,143 +21,175 @@ class NonLinearCG(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        self.tol = options.get("tol", None)
-        self.gtol = options.get("gtol", 1e-4)
-        self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", 2)
-        self.line_search = options.get("line_search", "strong_wolfe")
-        self.line_search_options = options.get("line_search_options", {'gtol':1e-1, 'xtol':1e-16})
-        self.ls = get_line_search_method(self.line_search, self.line_search_options)
-        self.callback = options.get("callback", None)
+        self.problem = problem
+        self.set_options(options)
+        self.linesearch = get_line_search_method(self.options['line_search'], self.options['line_search_options'])
+        self.data = {'control'      : initial_point,
+                     'iteration'    : 0}
+        self.compute_beta = _beta_rules[self.options['beta_rule']]
+    
+    @classmethod
+    def default_options(cls):
+        # this is defined as a function to prevent defaults from being changed at runtime.
+        default = OptimisationAlgorithm.default_options()
+        default.update(
+            # generic parameters:
+            {"jtol"                   : None,
+             "gtol"                   : 1e-4,
+             "maxiter"                :  200,
+             "display"                :    2,
+             "line_search"            : "strong_wolfe",
+             "line_search_options"    : {},
+             "callback"               : None,
+             "record"                 : ("grad_norm", "objective"),
 
-        if self.tol is not None:
-            print 'tol paramter not yet supported.'
+             # method specific parameters:
+             "beta_rule"              : "polak-ribiere-polyak"
+             })
+        return default
 
-        # method-specific settings
-        self.cg_scheme = options.get("cg_scheme", 'HZ')
+    @classmethod
+    def list_beta_rules(cls):
+        return _beta_rules.keys()
+    
 
     def __str__(self):
-        s = "Nonlinear CG ({}).\n".format(self.cg_scheme)
+        s = "Nonlinear CG ({}).\n".format(self.options['beta_rule'])
         s += "-"*30 + "\n"
-        s += "Line search:\t\t %s\n" % self.line_search 
-        s += "Maximum iterations:\t %i\n" % self.maxiter 
+        s += "Line search:\t\t %s\n" % self.options['line_search']
+        s += "Maximum iterations:\t %i\n" % self.options['maxiter']
         return s
-
-    def do_linesearch(self, obj, m, s):
-        ''' Performs a linesearch on obj starting from m in direction s. '''
-
-        # Define the real-valued reduced function in the s-direction 
-        def phi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            return obj(tmpm)
-
-        def phi_dphi(alpha):
-            tmpm = m.copy()
-            tmpm.axpy(alpha, s) 
-
-            p = phi(alpha) 
-            djs = obj.derivative(tmpm).apply(s)
-            return p, djs
-
-        # Perform the line search
-        alpha = self.ls.search(phi, phi_dphi)
-        return alpha
-
-    def solve(self, problem, m):
-        ''' Solves the optimisation problem with the Fletcher-Reeves method. 
+    
+    def solve(self):
+        ''' Solves the optimisation problem with a (conjugate) gradient method. 
             Arguments:
              * problem: The optimisation problem.
 
             Return value:
               * solution: The solution to the optimisation problem 
          '''
-        print self
-        obj = problem.obj
+        self.display(self.__str__(), 1)
 
-        dj = obj.derivative(m)
-        dj_grad = dj.primal()
+        options = self.options
+        obj = self.problem.obj
+
+        x = self.data['control']
+
+        J = obj(x)
+        derivative = obj.derivative(x)
+        gradient = derivative.primal()
+        grad_norm2 = derivative.apply(gradient)
+
+        self.update({'grad_norm' : sqrt(grad_norm2),
+                     'objective' : obj(x)})
+        self.record_progress()
         
-
-        s = dj_grad.copy() # search direction
-        s.scale(-1)
+        p = gradient.copy() # initial search direction
+        p.scale(-1)
 
         # Start the optimisation loop
         it = 0
+        while self.check_convergence() == 0:
+            self.display(self.iter_status, 2)
 
-        while self.check_convergence(it, None, None, dj_grad) == 0:
-            self.display(it, None, None, dj_grad)
             # Perform the line search
-
             try:
-                alpha = self.do_linesearch(obj, m, s)
-            except (RuntimeError, Warning), e:
-                self.status = 4
-                self.reason = e.message
-                break
-            
-            # Update m
-            m_prev = m.copy()
-            m.axpy(alpha, s)
-
-            # Compute the relaxation value
-            if self.cg_scheme == 'FR':
-                b_old = dj.apply(dj_grad)
-                dj = obj.derivative(m)
-                dj_grad = dj.primal()
-                b = dj.apply(dj_grad)
-                beta = b/b_old
-            if self.cg_scheme == 'HS':
-                y = dj
-                dj = obj.derivative(m)
-                dj_grad = dj.primal()
-                y.axpy(-1.,dj)
-                beta = y.apply(dj_grad) /y(s)
-            if self.cg_scheme in ('PR', 'PR+'):
-                b = dj.apply(dj_grad)
-                y = dj
-                dj = obj.derivative(m)
-                dj_grad = dj.primal()
-                y.axpy(-1.,dj)
-                a = y.apply(dj_grad)
-                beta = -a /b
-                if self.cg_scheme == 'PR+':
-                    beta = max(beta,0)
-            if self.cg_scheme == 'HZ':
-                y = dj
-                z = dj_grad
-                dj = obj.derivative(m)
-                dj_grad = dj.primal()
-                y.axpy(-1.,dj)
-                z.axpy(-1., dj_grad)
-                a = y.apply(z)
-                b = -y.apply(s)
-                c = -y.apply(dj_grad)
-                d = dj.apply(s)
-                beta = (c - 2*d*a/b)/b
-            if self.cg_scheme == 'DY':
-                y = dj
-                dj = obj.derivative(m)
-                dj_grad = dj.primal()
-                y.axpy(-1.,dj)
-                beta = - dj.apply(dj_grad) / y(s)
-            if self.cg_scheme == 'D':
-                h = obj.hessian(m_prev, s)
-                dj_grad = obj.derivative().primal()
-                beta =  h.apply(dj_grad) / h(s)
+                x, alpha = self.do_linesearch(obj, x, p)
+            except RuntimeError:
+                # TODO: handle errors better.
+                # For assuming error is due to search diretion not being a descent direction.
+                self.display('Search direction is not a descent direction; restarting.', 2)
+                p = -1 * gradient
+                x, alpha = self.do_linesearch(obj, x, p)
                 
-            # Update the search direction
-            s.scale(beta)
-            s.axpy(-1, dj_grad)
 
+            # gradient evaluations at new point
+            derivative, old_derivative = obj.derivative(x), derivative 
+            gradient, old_gradient = derivative.primal(), gradient
+            grad_norm2, old_grad_norm2 = derivative.apply(gradient), grad_norm2
+            
+            # Compute the relaxation value
+            beta = self.compute_beta(gradient, derivative, grad_norm2, p, 
+                                     old_gradient, old_derivative, old_grad_norm2)
+
+            # get new search direction:  p_new = beta * p_old - gradient
+            p.scale(beta)
+            p.axpy(-1., gradient)
             it += 1
-
-            if self.callback is not None:
-                self.callback(None, s, m)
+            J, old_J = obj(x), J
+            #update
+            self.update(iteration = it, control = x, grad_norm = sqrt(grad_norm2),
+                        objective = J, delta_J = old_J - J)
+            self.record_progress()
 
         # Print the reason for convergence
-        self.display(it, None, None, dj_grad)
-        sol = Solution({"Optimizer": m,
-                            "Number of iterations": it})
-        return sol
+        self.display(self.convergence_status, 1)
+        self.display(self.iter_status, 1)
+        
+        return self.data
+
+
+
+    
+def _steepest_descent(gradient, derivative, grad_norm2, p,
+                      old_gradient, old_derivative, old_grad_norm2):
+    return 0.
+
+def _fletcher_reeves(gradient, derivative, grad_norm2, p,
+                     old_gradient, old_derivative, old_grad_norm2):
+    '''
+    Compute the Flether-Reeves update parameter.
+    '''
+    beta = grad_norm2 / old_grad_norm2
+    return beta
+
+def _hestenes_stiefel(gradient, derivative, grad_norm2, p,
+                      old_gradient, old_derivative, old_grad_norm2):
+    '''
+    Computes the 'standard cg' beta 
+    '''
+    y = derivative - old_derivative
+    beta = y.apply(gradient) / y.apply(p)
+    return beta
+
+def  _conjugate_descent(gradient, derivative, grad_norm2, p,
+                        old_gradient, old_derivative, old_grad_norm2):
+    beta = grad_norm2 / - old_derivative.apply(p)
+    return beta
+
+def  _polak_ribiere_polyak(gradient, derivative, grad_norm2, p,
+                    old_gradient, old_derivative, old_grad_norm2):
+    y = derivative - old_derivative
+    beta = y.apply(gradient) / old_grad_norm2
+    return beta
+
+def _hager_zhang(gradient, derivative, grad_norm2, p,
+                 old_gradient, old_derivative, old_grad_norm2):
+    y = derivative - old_derivative
+    z = y.primal()
+    t1 = y.apply(p)
+    t2 = 2 * y.apply(z) / t1
+    beta = derivative.apply(z - t2*p) / t1
+    return beta
+
+def _dai_yuan(gradient, derivative, grad_norm2, p,
+              old_gradient, old_derivative, old_grad_norm2):
+    y = derivative - old_derivative
+    beta = grad_norm2 / y.apply(p)
+    return beta
+
+def _liu_storey(gradient, derivative, grad_norm2, p,
+                      old_gradient, old_derivative, old_grad_norm2):
+    y = derivative - old_derivative
+    return - y.apply(gradient) /  old_derivative.apply(p)
+    
+
+_beta_rules = {'steepest_descent'    : _steepest_descent,
+               'fletcher-reeves'     : _fletcher_reeves,
+               'hestenes-stiefel'    : _hestenes_stiefel,
+               'conjugate_descent'   : _conjugate_descent,
+               'polak-ribiere-polyak': _polak_ribiere_polyak,
+               'hager-zhang'         : _hager_zhang,
+               'dai-yuan'            : _dai_yuan,
+               'liu-storey'          : _liu_storey}
+

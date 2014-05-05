@@ -51,6 +51,7 @@ class DolfinVector(Vector):
         v = self.data.vector()
         v.zero()
         self.bump_version()
+        return self
 
     def local_size(self):
         ''' Returns the (local) size of the vector. '''

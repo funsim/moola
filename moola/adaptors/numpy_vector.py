@@ -35,6 +35,7 @@ class NumpyVector(Vector):
     def zero(self):
         ''' Zeros the vector. '''
         self.data[:] = 0
+        return self
 
     def size(self):
         ''' Returns the (global) size of the vector. '''

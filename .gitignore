@@ -1,6 +1,7 @@
 # Temporary files
 *.bak
 *.old
+*.orig
 *_bak
 *~
 *.swp

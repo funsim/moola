@@ -73,7 +73,8 @@ if __name__ == "__main__":
             sys.exit(0)
 
         problem = rf.moola_problem()
-        solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
+        solver = moola.TrustRegionNewtonCG(options={'gtol': 1e-6, "ncg_D0": 0.5})
+        #solver = moola.NewtonCG(options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
         #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-7, 'maxiter': 20, 'mem_lim': 20})
         m_moola = moola.DolfinPrimalVector(m)
         sol = solver.solve(problem, m_moola)

@@ -3,3 +3,4 @@ from fletcher_reeves import FletcherReeves
 from nonlinear_cg import NonLinearCG
 from bfgs import BFGS
 from newton_cg import NewtonCG
+from hybrid_cg import HybridCG

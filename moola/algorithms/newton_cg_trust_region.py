@@ -6,41 +6,53 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
     An implementation of the trust region NewtonCG method 
     described in Wright 2006, section 7. 
     '''
-    def __init__(self, options={}, **args):
+    def __init__(self, problem, initial_point = None, options={}):
         '''
         Initialises the trust region Newton CG method. The valid options are:
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
-            - tol: Not supported yet - must be None. 
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
           '''
-        print "Test"
 
         # Set the default options values
-        self.tol = options.get("tol", None)
-        self.gtol = options.get("gtol", 1e-4)
-        self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", 2)
+        self.problem = problem
+        self.set_options(options)
 
-        if self.tol is not None:
-            print 'tol parameter not yet supported. Will be ignored.'
+        self.data = {'control'   : initial_point,
+                     'iteration' : 0}
 
-        # method specific options:
-        self.tr_Dmax = options.get("ncg_Dmax", 1e5) # overall bound on the step lengths
-        self.tr_D0 = options.get("ncg_D0", 1) # current bound on the step length
-        self.eta = options.get("eta", 1./8)
-
-        assert 0 <= self.eta < 1./4
-        assert self.tr_Dmax > 0
-        assert 0 < self.tr_D0 < self.tr_Dmax
+        # validate method specific options
+        assert 0 <= self.options['eta'] < 1./4
+        assert self.options['tr_Dmax'] > 0
+        assert 0 < self.options['tr_D0'] < self.options['tr_Dmax']
     
     def __str__(self):
         s = "Trust region Newton CG method.\n"
         s += "-"*30 + "\n"
-        s += "Maximum iterations:\t %i\n" % self.maxiter 
+        s += "Maximum iterations:\t %i\n" % self.options['maxiter']
         return s
 
+    # set default parameters
+    
+    @classmethod
+    def default_options(cls):
+        # this is defined as a function to prevent defaults from being changed at runtime.
+        default = OptimisationAlgorithm.default_options()
+        default.update(
+            # generic parameters:
+            {"gtol"                   : 1e-4,
+             "maxiter"                :  200,
+             "display"                :    2,
+             "callback"               : None,
+             "record"                 : ("grad_norm"), 
+
+             # method specific parameters:
+             "tr_Dmax"                :  1e5, # overall bound on the step lengths
+             "tr_D0"                  :    1, # current bound on the step length
+             "eta"                    : 1./8,
+             })
+        return default
 
     def get_tau(self, obj, z, d, D, verify=True):
         """ Function to find tau such that p = pj + tau.dj, and ||p|| = D. """
@@ -122,28 +134,24 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
             d = -r + beta*d
 
 
-    def solve(self, problem, xk):
+    def solve(self):
         ''' Solves the optimisation problem with the trust region Newton-CG method. 
-            Arguments:
-             * problem: The optimisation problem.
-             * xk: The initial guess
-
-            Return value:
-              * solution: The solution to the optimisation problem 
          '''
         print self
             
         print "Doing another iteration"
-        obj = problem.obj
-        opt_iter = 0
-        Dk = self.tr_D0
+        obj = self.problem.obj
+        i = 0
+        Dk = self.options['tr_D0']
+        xk = self.data['control']
 
         while True:
             res = obj.derivative(xk)
-            if self.check_convergence(opt_iter, None, None, res):
+            self.update({'grad_norm' : res.primal_norm()})
+            if self.check_convergence() != 0:
                 break
 
-            self.display(opt_iter, None, None, res)
+            self.display(self.iter_status, 2)
 
             # Compute trust region point
             pk, is_cauchy_point = self.compute_pk_cg_steihaug(obj, xk, Dk)
@@ -160,20 +168,24 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
                 print "Decreasing trust region radius to %f." % Dk
 
             elif rhok > 3./4 and is_cauchy_point:
-                Dk = min(2*Dk, self.tr_Dmax)
+                Dk = min(2*Dk, self.options['tr_Dmax'])
                 print "Increasing trust region radius to %f." % Dk
 
-            if rhok > self.eta:
+            if rhok > self.options['eta']:
                 xk.axpy(1., pk)
                 print "Trust region step accepted."
             else:
                 print "Rejecting step. Reason: trust region step did not reduce objective."
 
-            opt_iter += 1
+            i += 1
             
 
-        self.display(opt_iter, None, None, res)
-        sol = {'Optimizer': xk,
-               'Number of iterations': opt_iter,
-               'Functional value at optimizer': None }
-        return sol
+            res = obj.derivative(xk)
+            # store current iteration variables
+            self.update({'iteration' : i,
+                         'control'   : xk,
+                         'grad_norm' : res.primal_norm()
+                        })
+        self.display(self.convergence_status, 1)
+        self.display(self.iter_status, 1)
+        return self.data

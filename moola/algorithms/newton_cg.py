@@ -53,7 +53,7 @@ class NewtonCG(OptimisationAlgorithm):
              "maxiter"                :  200,
              "display"                :    2,
              "line_search"            : "strong_wolfe",
-             "line_search_options"    : {},
+             "line_search_options"    : {"start_stp": 1},
              "callback"               : None,
              "record"                 : ("grad_norm", "objective"),
 

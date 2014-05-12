@@ -1,5 +1,5 @@
 from optimisation_algorithm import *
-
+from math import sqrt
 
 class LinearOperator(object):
 
@@ -24,12 +24,14 @@ class LimitedMemoryInverseHessian(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit, mem_lim = 10):
+    def __init__(self, Hinit, mem_lim = 10, theta = 1, theta_rule = 1):
         self.Hinit = Hinit
         self.mem_lim = mem_lim
         self.y   = []
         self.s   = []
         self.rho = []
+        self.theta = theta
+        self.theta_rule = theta_rule
         
     def __len__(self):
         assert( len(self.y) == len(self.s) )
@@ -50,12 +52,25 @@ class LimitedMemoryInverseHessian(LinearOperator):
         self.y.append(yk)
         self.s.append(sk)
         self.rho.append( 1./ yk.apply(sk) )
+        self.theta = self.compute_theta()
+
+    def compute_theta(self):
+        rhok, yk, sk = self.rho[-1],self.y[-1], self.s[-1]
+        if self.theta_rule != 0:
+            t1 = rhok / yk.apply(yk.primal())
+            if self.theta_rule == 1:
+                return t1
+        t0 = sk.norm()**2 / rhok
+        if self.theta_rule == 0: return t0
+        if self.theta_rule == 2: return (t0 + t1) / 2
+        if self.theta_rule == 3: return sqrt(t0 * t1)
+        
 
     def matvec(self,x,k = -1):
         if k == -1:
             k = len(self)
         if k == 0:
-            return self.Hinit * x
+            return self.theta * (self.Hinit * x)
         rhok, yk, sk = self[k]     
         t = x - rhok * x.apply(sk) * yk
         t = self.matvec(t, k-1)
@@ -153,6 +168,9 @@ class BFGS(OptimisationAlgorithm):
             self.display(self.iter_status, 2)
             # compute search direction
             pk = - (Hk * dJ_xk)
+            if it == 0:
+                # then normalize; 
+                pk.scale( 1./  dJ_xk.primal_norm())
             
             # do a line search and update
             xk, ak = self.do_linesearch(objective, xk, pk)

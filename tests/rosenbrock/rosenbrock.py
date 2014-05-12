@@ -128,8 +128,20 @@ def test_HybridCG(hybrid_options, hybrid_expected, moola_problem):
 
 
 if __name__ == '__main__':
+    use_moola = True
+    maxiter = 10
+
     prob, x0, opt = moola_problem()
-    opt.update({"gtol": 1e-12, 'mem_lim': 2, 'initial_bfgs_iterations': 1, 'ncg_hesstol': 0})
-    solver = HybridCG(prob, x0, options = opt)
-    sol = solver.solve()
-    
+
+    if use_moola:
+        opt.update({"gtol": 1e-12, 'mem_lim': 2, 'maxiter': maxiter, 'mem_lim': 100})
+        solver = BFGS(prob, x0, options = opt)
+        sol = solver.solve()
+
+    else:
+        from scipy.optimize import minimize
+        objective  = lambda x: prob.obj(NumpyPrimalVector(x))
+        derivative = lambda x: prob.obj.derivative(NumpyPrimalVector(x)).data
+        x_init = x0.data
+
+        minimize(objective, x_init, method="L-BFGS-B", tol=1e-1000, jac=derivative, options={"disp": True, "maxiter": maxiter-2, "gtol": 1e-12, "maxcor": 100})

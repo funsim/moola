@@ -82,7 +82,7 @@ class BFGS(OptimisationAlgorithm):
     """
         Implements the BFGS method. 
      """
-    def __init__(self, problem, initial_point = None, Hinit=LinearOperator(dual_to_primal), options={}, hooks={}, **args):
+    def __init__(self, problem, initial_point = None, options={}, hooks={}, **args):
         '''
         Initialises the L-BFGS algorithm. 
         
@@ -105,6 +105,14 @@ class BFGS(OptimisationAlgorithm):
         # Set the default options values
         self.problem = problem
         self.set_options(options)
+        if self.options["Hinit"] == "default":
+            Hinit = LinearOperator(dual_to_primal)
+        elif self.options["Hinit"] == "l2":
+            print "Warning: Using l2 as Hinit is currently inefficient"
+            Hinit = LinearOperator( lambda v: v.primal().__class__(v.data) )  # FIXME: Find a better way how to get the PrimalVector class
+        else:
+            Hinit = LinearOperator(self.options["Hinit"])
+
         self.linesearch = get_line_search_method(self.options['line_search'], self.options['line_search_options'])
         self.data = {'control'   : initial_point,
                      'iteration' : 0,
@@ -123,7 +131,7 @@ class BFGS(OptimisationAlgorithm):
              "maxiter"                :  200,
              "display"                :    2,
              "line_search"            : "strong_wolfe",
-             "line_search_options"    : {},
+             "line_search_options"    : {"ftol": 1e-3, "gtol": 0.9, "xtol": 1e-1, "start_stp": 1},
              "callback"               : None,
              "record"                 : ("grad_norm", "objective"),
              # method specific parameters:

@@ -24,7 +24,7 @@ class LimitedMemoryInverseHessian(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit, mem_lim = 10, theta = 1, theta_rule = 1):
+    def __init__(self, Hinit, mem_lim = 10, theta = 1, theta_rule = 0):
         self.Hinit = Hinit
         self.mem_lim = mem_lim
         self.y   = []
@@ -55,12 +55,12 @@ class LimitedMemoryInverseHessian(LinearOperator):
         self.theta = self.compute_theta()
 
     def compute_theta(self):
-        rhok, yk, sk = self.rho[-1],self.y[-1], self.s[-1]
+        sty, yk, sk = 1./self.rho[-1],self.y[-1], self.s[-1]
         if self.theta_rule != 0:
-            t1 = rhok / yk.apply(yk.primal())
+            t1 = sty / yk.apply(yk.primal())
             if self.theta_rule == 1:
                 return t1
-        t0 = sk.norm()**2 / rhok
+        t0 = sk.norm()**2 / sty
         if self.theta_rule == 0: return t0
         if self.theta_rule == 2: return (t0 + t1) / 2
         if self.theta_rule == 3: return sqrt(t0 * t1)

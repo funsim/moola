@@ -6,8 +6,6 @@ import moola
 
 dolfin.set_log_level(ERROR)
 parameters['std_out_all_processes'] = False
-x = triangle.x
-
 
 def solve_pde(u, V, m):
     v = TestFunction(V)
@@ -50,9 +48,9 @@ def moola_problem(request):
     alpha = Constant(0.1)
     
     u_d = interpolate(Expression('pow(sin(pi*x[0])*sin(pi*x[1]),2)'), Q)
-    from numpy.random import rand
-    epsilon = 0.05
-    u_d.vector()[:] += epsilon * (rand(len(u_d.vector()))*2 - 1)
+    #from numpy.random import rand
+    #epsilon = 0.05
+    #u_d.vector()[:] += epsilon * (rand(len(u_d.vector()))*2 - 1)
     #u_d = Function(V)
     #solve_pde(u_d, V, m_ex)
     
@@ -69,7 +67,7 @@ def moola_problem(request):
     return rf.moola_problem(), x_init, options
 
 @pytest.mark.parametrize("bfgs_options,bfgs_expected",
-                         [ ({"gtol": 1e-4, 'mem_lim':30}, [13]),
+                         [ ({"gtol": 1e-4, 'mem_lim':30}, [11]),
                            ({"jtol": 1e-7, 'mem_lim':30}, [12]),])
 def test_LBFGS(bfgs_options, bfgs_expected, moola_problem):
     problem, x_init, options = moola_problem
@@ -105,8 +103,8 @@ def test_NonlinearCG(nlcg_options, nlcg_expected, moola_problem):
 
 
 @pytest.mark.parametrize("newtcg_options,newtcg_expected",
-                         [ ({"gtol": 1e-8, 'ncg_hesstol': 0}, 7),
-                           ({"jtol": 1e-9, 'ncg_hesstol': 0}, 7)])
+                         [ ({"gtol": 1e-8, 'ncg_hesstol': 0}, 6),
+                           ({"jtol": 1e-9, 'ncg_hesstol': 0}, 6)])
 def test_NewtonCG(newtcg_options, newtcg_expected, moola_problem):
     problem, x_init, options = moola_problem
     options.update(newtcg_options)

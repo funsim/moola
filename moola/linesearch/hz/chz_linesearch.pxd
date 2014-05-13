@@ -16,7 +16,9 @@ cdef extern from "cg_descent.c":
         long int ng 
         double alpha         # stepsize along search direction
         double f             # function value for step alpha
+        double f0            # old function value
         double df            # function derivative for step alpha
+        double df0           # old function derivative value
         void *context        # user defined context
 
     void cg_printParms(cg_parameter *Parm)

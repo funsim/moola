@@ -15,15 +15,15 @@
 typedef struct cg_com_struct /* common variables */
 {
     /* parameters computed by the code */
-    INT              n ; /* problem dimension, saved for reference */
-    INT             nf ; /* number of function evaluations */
-    INT             ng ; /* number of gradient evaluations */
+    //INT              n ; /* problem dimension, saved for reference */
+    //INT             nf ; /* number of function evaluations */
+    //INT             ng ; /* number of gradient evaluations */
     int         QuadOK ; /* T (quadratic step successful) */
     int       UseCubic ; /* T (use cubic step) F (use secant step) */
     int           neps ; /* number of time eps updated */
     int       PertRule ; /* T => estimated error in function value is eps*Ck,
                             F => estimated error in function value is eps */
-    int          QuadF ; /* T => function appears to be quadratic */
+    //int          QuadF ; /* T => function appears to be quadratic */
     double   SmallCost ; /* |f| <= SmallCost => set PertRule = F */
     double       alpha ; /* stepsize along search direction */
     double           f ; /* function value for step alpha */
@@ -67,12 +67,12 @@ PRIVATE int cg_Wolfe
     cg_com    *Com  /* cg com */
 ) ;
 
-PRIVATE int cg_tol
-(
-    double     gnorm, /* gradient sup-norm */
-    cg_com    *Com    /* cg com */
-) ;
-
+//PRIVATE int cg_tol
+//(
+//    double     gnorm, /* gradient sup-norm */
+//    cg_com    *Com    /* cg com */
+//) ;
+//
 PRIVATE int cg_line
 (
     cg_com   *Com  /* cg com structure */
@@ -106,129 +106,129 @@ PRIVATE double cg_cubic
     double db  /* derivative at b */
 ) ;
 
-PRIVATE void cg_matvec
-(
-    double *y, /* product vector */
-    double *A, /* dense matrix */
-    double *x, /* input vector */
-    int     n, /* number of columns of A */
-    INT     m, /* number of rows of A */
-    int     w  /* T => y = A*x, F => y = A'*x */
-) ;
+//PRIVATE void cg_matvec
+//(
+//    double *y, /* product vector */
+//    double *A, /* dense matrix */
+//    double *x, /* input vector */
+//    int     n, /* number of columns of A */
+//    INT     m, /* number of rows of A */
+//    int     w  /* T => y = A*x, F => y = A'*x */
+//) ;
 
-PRIVATE void cg_trisolve
-(
-    double *x, /* right side on input, solution on output */
-    double *R, /* dense matrix */
-    int     m, /* leading dimension of R */
-    int     n, /* dimension of triangular system */
-    int     w  /* T => Rx = y, F => R'x = y */
-) ;
+//PRIVATE void cg_trisolve
+//(
+//    double *x, /* right side on input, solution on output */
+//    double *R, /* dense matrix */
+//    int     m, /* leading dimension of R */
+//    int     n, /* dimension of triangular system */
+//    int     w  /* T => Rx = y, F => R'x = y */
+//) ;
 
-PRIVATE double cg_inf
-(
-    double *x, /* vector */
-    INT     n /* length of vector */
-) ;
-
-PRIVATE void cg_scale0
-(
-    double *y, /* output vector */
-    double *x, /* input vector */
-    double  s, /* scalar */
-    int     n /* length of vector */
-) ;
-
-PRIVATE void cg_scale
-(
-    double *y, /* output vector */
-    double *x, /* input vector */
-    double  s, /* scalar */
-    INT     n /* length of vector */
-) ;
-
-PRIVATE void cg_daxpy0
-(
-    double     *x, /* input and output vector */
-    double     *d, /* direction */
-    double  alpha, /* stepsize */
-    int         n  /* length of the vectors */
-) ;
-
-PRIVATE void cg_daxpy
-(
-    double     *x, /* input and output vector */
-    double     *d, /* direction */
-    double  alpha, /* stepsize */
-    INT         n  /* length of the vectors */
-) ;
-
-PRIVATE double cg_dot0
-(
-    double *x, /* first vector */
-    double *y, /* second vector */
-    int     n /* length of vectors */
-) ;
-
-
-PRIVATE void cg_init
-(
-    double *x, /* input and output vector */
-    double  s, /* scalar */
-    INT     n /* length of vector */
-) ;
-
-PRIVATE double cg_update_2
-(
-    double *gold, /* old g */
-    double *gnew, /* new g */
-    double    *d, /* d */
-    INT        n /* length of vectors */
-) ;
-
-PRIVATE double cg_update_inf
-(
-    double *gold, /* old g */
-    double *gnew, /* new g */
-    double    *d, /* d */
-    INT        n /* length of vectors */
-) ;
-
-PRIVATE double cg_update_ykyk
-(
-    double *gold, /* old g */
-    double *gnew, /* new g */
-    double *Ykyk,
-    double *Ykgk,
-    INT        n /* length of vectors */
-) ;
-
-PRIVATE double cg_update_inf2
-(
-    double   *gold, /* old g */
-    double   *gnew, /* new g */
-    double      *d, /* d */
-    double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
-) ;
-
-PRIVATE double cg_update_d
-(
-    double      *d,
-    double      *g,
-    double    beta,
-    double *gnorm2, /* 2-norm of g */
-    INT          n /* length of vectors */
-) ;
-
-PRIVATE void cg_Yk
-(
-    double    *y, /*output vector */
-    double *gold, /* initial vector */
-    double *gnew, /* search direction */
-    double  *yty, /* y'y */
-    INT        n  /* length of the vectors */
-) ;
+//PRIVATE double cg_inf
+//(
+//    double *x, /* vector */
+//    INT     n /* length of vector */
+//) ;
+//
+//PRIVATE void cg_scale0
+//(
+//    double *y, /* output vector */
+//    double *x, /* input vector */
+//    double  s, /* scalar */
+//    int     n /* length of vector */
+//) ;
+//
+//PRIVATE void cg_scale
+//(
+//    double *y, /* output vector */
+//    double *x, /* input vector */
+//    double  s, /* scalar */
+//    INT     n /* length of vector */
+//) ;
+//
+//PRIVATE void cg_daxpy0
+//(
+//    double     *x, /* input and output vector */
+//    double     *d, /* direction */
+//    double  alpha, /* stepsize */
+//    int         n  /* length of the vectors */
+//) ;
+//
+//PRIVATE void cg_daxpy
+//(
+//    double     *x, /* input and output vector */
+//    double     *d, /* direction */
+//    double  alpha, /* stepsize */
+//    INT         n  /* length of the vectors */
+//) ;
+//
+//PRIVATE double cg_dot0
+//(
+//    double *x, /* first vector */
+//    double *y, /* second vector */
+//    int     n /* length of vectors */
+//) ;
+//
+//
+//PRIVATE void cg_init
+//(
+//    double *x, /* input and output vector */
+//    double  s, /* scalar */
+//    INT     n /* length of vector */
+//) ;
+//
+//PRIVATE double cg_update_2
+//(
+//    double *gold, /* old g */
+//    double *gnew, /* new g */
+//    double    *d, /* d */
+//    INT        n /* length of vectors */
+//) ;
+//
+//PRIVATE double cg_update_inf
+//(
+//    double *gold, /* old g */
+//    double *gnew, /* new g */
+//    double    *d, /* d */
+//    INT        n /* length of vectors */
+//) ;
+//
+//PRIVATE double cg_update_ykyk
+//(
+//    double *gold, /* old g */
+//    double *gnew, /* new g */
+//    double *Ykyk,
+//    double *Ykgk,
+//    INT        n /* length of vectors */
+//) ;
+//
+//PRIVATE double cg_update_inf2
+//(
+//    double   *gold, /* old g */
+//    double   *gnew, /* new g */
+//    double      *d, /* d */
+//    double *gnorm2, /* 2-norm of g */
+//    INT          n /* length of vectors */
+//) ;
+//
+//PRIVATE double cg_update_d
+//(
+//    double      *d,
+//    double      *g,
+//    double    beta,
+//    double *gnorm2, /* 2-norm of g */
+//    INT          n /* length of vectors */
+//) ;
+//
+//PRIVATE void cg_Yk
+//(
+//    double    *y, /*output vector */
+//    double *gold, /* initial vector */
+//    double *gnew, /* search direction */
+//    double  *yty, /* y'y */
+//    INT        n  /* length of the vectors */
+//) ;
 
 PRIVATE void cg_printParms
 (

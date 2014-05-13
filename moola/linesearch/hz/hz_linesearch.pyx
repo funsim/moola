@@ -42,8 +42,6 @@ cdef class HZLineSearch:
         self.c_com.Parm = &(self.c_params)
         self.c_com.eps = self.c_params.eps
         self.c_com.PertRule = self.c_params.PertRule
-        self.c_com.nf = 0
-        self.c_com.ng = 0
 
     def print_parameter(self):
         chz.cg_printParms(&self.c_params)
@@ -60,6 +58,9 @@ cdef class HZLineSearch:
 
         context = (phi, phi_dphi)
         self.c_com.context = <void*> context
+
+        self.c_com.f0 = phi(0)
+        self.c_com.df0 = phi_dphi(0)[1]
 
         status = chz.cg_line(&(self.c_com))
         if status != 0:

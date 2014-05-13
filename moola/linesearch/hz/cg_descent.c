@@ -524,7 +524,7 @@ PRIVATE int cg_contract
 )
 {
     int AWolfe, iter, PrintLevel, toggle, status ;
-    double a, alpha, b, old, da, db, df, d1, dold, f, fa, fb, f1, fold,
+    double a, alpha, b, old, da, db, df, dold, f, fa, fb, f1, fold,
            t, width ;
     char *s ;
     cg_parameter *Parm ;
@@ -539,7 +539,6 @@ PRIVATE int cg_contract
     fb = *fB ;
     db = *dB ;
     f1 = fb ;
-    d1 = db ;
     toggle = 0 ;
     width = ZERO ;
     for (iter = 0; iter < Parm->nshrink; iter++)

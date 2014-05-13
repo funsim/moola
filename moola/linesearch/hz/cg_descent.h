@@ -30,11 +30,11 @@ typedef struct cg_com_struct /* common variables */
     double          df ; /* function derivative for step alpha */
     double       fpert ; /* perturbation is eps*|f| if PertRule is T */
     double         eps ; /* current value of eps */
-    double         tol ; /* computing tolerance */
+    //double         tol ; /* computing tolerance */
     double          f0 ; /* old function value */
     double         df0 ; /* old derivative */
-    double          Ck ; /* average cost as given by the rule:
-                            Qk = Qdecay*Qk + 1, Ck += (fabs (f) - Ck)/Qk */
+    //double          Ck ; /* average cost as given by the rule:
+    //                        Qk = Qdecay*Qk + 1, Ck += (fabs (f) - Ck)/Qk */
     double    wolfe_hi ; /* upper bound for slope in Wolfe test */
     double    wolfe_lo ; /* lower bound for slope in Wolfe test */
     double   awolfe_hi ; /* upper bound for slope, approximate Wolfe test */
@@ -45,14 +45,14 @@ typedef struct cg_com_struct /* common variables */
     int          Wolfe ; /* T (means code reached the Wolfe part of cg_line */
     double         rho ; /* either Parm->rho or Parm->nan_rho */
     double    alphaold ; /* previous value for stepsize alpha */
-    double          *x ; /* current iterate */
-    double      *xtemp ; /* x + alpha*d */
-    double          *d ; /* current search direction */
-    double          *g ; /* gradient at x */
-    double      *gtemp ; /* gradient at x + alpha*d */
-    double   (*cg_value) (double *, INT) ; /* f = cg_value (x, n) */
-    void      (*cg_grad) (double *, double *, INT) ; /* cg_grad (g, x, n) */
-    double (*cg_valgrad) (double *, double *, INT) ; /* f = cg_valgrad (g,x,n)*/
+    //double          *x ; /* current iterate */
+    //double      *xtemp ; /* x + alpha*d */
+    //double          *d ; /* current search direction */
+    //double          *g ; /* gradient at x */
+    //double      *gtemp ; /* gradient at x + alpha*d */
+    //double   (*cg_value) (double *, INT) ; /* f = cg_value (x, n) */
+    //void      (*cg_grad) (double *, double *, INT) ; /* cg_grad (g, x, n) */
+    //double (*cg_valgrad) (double *, double *, INT) ; /* f = cg_valgrad (g,x,n)*/
     cg_parameter *Parm ; /* user parameters */
     void *context;       /* User specific context */
 } cg_com ;

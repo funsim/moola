@@ -43,7 +43,14 @@ cdef class HZLineSearch:
         self.c_com.eps = self.c_params.eps
         self.c_com.PertRule = self.c_params.PertRule
 
-    def print_parameter(self):
+    def set_print_level(self, level):
+        ''' Level 0  = no printing) 
+            ...
+            Level 3 = maximum printing 
+        '''
+        self.c_params.PrintLevel = level
+
+    def print_parameters(self):
         chz.cg_printParms(&self.c_params)
 
     def search(self, phi=phi, phi_dphi=phi_dphi):

@@ -6,6 +6,8 @@ cdef extern from "cg_descent.c":
         int Wolfe
         long int nf
         long int ng 
+        int PrintLevel       # Level 0  = no printing), ... , Level 3 = maximum printing
+        int PrintFinal       # T => print final statistics, F => no printout of statistics
 
     ctypedef struct cg_com:
         cg_parameter *Parm

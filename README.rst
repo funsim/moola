@@ -12,3 +12,10 @@ You need to have FEniCS_ and dolfin-adjoint_ installed to run the tests.
 
 .. _FEniCS: http://www.fenicsproject.org
 .. _dolfin-adjoint: http://dolfin-adjoint.org
+
+
+Update pypi Moola package
+-------------------------
+
+- Increase the version number on setup.py
+- Run `python setup.py register bdist_egg upload`  

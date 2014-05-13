@@ -8,18 +8,29 @@ cdef public int cg_evaluate(char *what, char *nan, chz.cg_com *com):
         print "Evaluating g"
         print "for alpha: ", com.alpha
         com.df = phi_dphi(alpha)[1]
+    elif  what == b"f":
+        print "Evaluating f"
+        print "for alpha: ", com.alpha
+        com.f = phi(alpha)
+    elif  what == b"fg":
+        print "Evaluating f and g"
+        print "for alpha: ", com.alpha
+        com.f, com.df = phi_dphi(alpha)
     else:
         print "What ", what
         raise ValueError, "Unkown value for parameter what"
 
+    print "Returning f =", com.f, " and g = ", com.df
     return 0
 
 
 def phi(alpha):
-    return 10*alpha**2 + 2*alpha + 10
+    x0 = 2
+    return 0.5*(alpha - x0)**2
 
 def phi_dphi(alpha):
-    return phi(alpha), 2*10*alpha + 2
+    x0 = 2
+    return phi(alpha), alpha - x0
 
 cdef class HZLineSearch:
     cdef chz.cg_parameter c_params

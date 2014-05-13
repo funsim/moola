@@ -32,7 +32,8 @@ bcu = [noslip]
 bcp = [inflow, outflow]
 
 # Define the indicator function for the control area
-chi = conditional(triangle.x[1] >= 5, 1, 0)
+y = SpatialCoordinate(mesh)[0]
+chi = conditional(y >= 5, 1, 0)
 
 # Define the variational formulation of the Navier-Stokes equations
 F = (inner(grad(u)*u, v)*dx +                 # Advection term
@@ -58,13 +59,13 @@ solver_type = "moola"
 
 ###############  Moola solver #############################
 if solver_type == "moola":
-    #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-4, 'maxiter': 20, 'mem_lim': 20})
-    solver = moola.NewtonCG(tol=1e-200, options={'gtol': 1e-4, 'maxiter': 20})
-
     m_moola = moola.DolfinPrimalVector(f)
-    sol = solver.solve(problem, m_moola)
+    #solver = moola.BFGS(tol=1e-200, options={'gtol': 1e-4, 'maxiter': 20, 'mem_lim': 20})
+    solver = moola.NewtonCG(problem, m_moola, options={'jtol': 0, 'gtol': 1e-4, 'maxiter': 20})
 
-    m_opt = sol['Optimizer'].data
+    sol = solver.solve()
+
+    m_opt = sol['control'].data
 
 ##############  Scipy solver ##############################
 if solver_type == "scipy":

@@ -63,6 +63,8 @@ cdef class HZLineSearch:
                  7: "Wolfe conditions never satisfied",
                 }
 
+        self.c_com.alpha = 1
+        print "Initial step :", self.c_com.alpha
         context = (phi, phi_dphi)
         self.c_com.context = <void*> context
 

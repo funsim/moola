@@ -19,7 +19,7 @@ mesh = UnitSquareMesh(res, res)
 
 dolfin.set_log_level(ERROR)
 parameters['std_out_all_processes'] = False
-x = triangle.x
+x = SpatialCoordinate(mesh)
 
 class Bottom(SubDomain):
     def inside(self, x, on_boundary):
@@ -70,13 +70,13 @@ m = SteadyParameter(g)
 rf = ReducedFunctional(J, m)
 
 problem = rf.moola_problem()
-solver = moola.BFGS(options={'tol': None, 'gtol': 1e-08, 'maxiter': 40, 'mem_lim': 5})
+g_moola = moola.DolfinPrimalVector(g)
+solver = moola.BFGS(problem, g_moola, options={'jtol': None, 'gtol': 1e-08, 'maxiter': 40, 'mem_lim': 5})
 #solver = moola.NewtonCG(options={'gtol': 1e-10, 'maxiter': 20, 'ncg_reltol':1e-20, 'ncg_hesstol': "default"})
 #solver = moola.FletcherReeves(options={'gtol': 1e-10, 'maxiter': 40})
 #solver = moola.SteepestDescent(tol=1e-200, options={'gtol': 1e-10, 'maxiter': 40})
-g_moola = moola.DolfinPrimalVector(g)
-sol = solver.solve(problem, g_moola)
-g_opt = sol['Optimizer'].data
+sol = solver.solve()
+g_opt = sol['control'].data
 
 #g_opt = minimize(rf, method="L-BFGS-B", tol=1e-09, options={"xtol": 1e-100})
 

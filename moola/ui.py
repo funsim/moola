@@ -8,7 +8,6 @@ from algorithms import BFGS
 from algorithms import NewtonCG
 from algorithms import TrustRegionNewtonCG
 from algorithms import NonLinearCG
-from algorithms import FletcherReeves
 from algorithms import SteepestDescent
 from algorithms import HybridCG
 

@@ -19,26 +19,44 @@ init_control = NumpyPrimalVector(np.ones(1))
 obj = MyFunctional()
 prob = Problem(obj)
 
-# Solve the problem with the steepest descent method
-options = {'tol': 1e-200, 'gtol': 1e-16, 'tol': None, 'mem_lim':0}
 
-solver = SteepestDescent(options=options)
-sol = solver.solve(prob, init_control.copy())
-assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
-assert sol["Number of iterations"] < 50
+# Solve the problem with the steepest descent method
+options = {'jtol': 0, 'gtol': 1e-16}
+solver = SteepestDescent(prob, init_control.copy(), options=options)
+sol = solver.solve()
+assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
+assert sol["iteration"] < 10
+
+print '\n'
+
+# Solve the problem with the steepest descent from the NonlinearCG method
+options = {'jtol': 0, 'gtol': 1e-16, "beta_rule": "steepest_descent"}
+solver = NonLinearCG(prob, init_control.copy(), options=options)
+sol = solver.solve()
+assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
+assert sol["iteration"] < 10
 
 print '\n'
 
 # Solve the problem with the Fletcher-Reeves method
-solver = FletcherReeves(options=options)
-sol = solver.solve(prob, init_control.copy())
-assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
-assert sol["Number of iterations"] < 50
+options = {'jtol': 0, 'gtol': 1e-16, "beta_rule": "fletcher-reeves"}
+solver = NonLinearCG(prob, init_control.copy(), options=options)
+sol = solver.solve()
+assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
+assert sol["iteration"] < 30
+
+# Solve the problem with the Hager-Zhang method
+options = {'jtol': 0, 'gtol': 1e-16, "beta_rule": "hager-zhang"}
+solver = NonLinearCG(prob, init_control.copy(), options=options)
+sol = solver.solve()
+assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
+assert sol["iteration"] < 10
 
 print '\n'
 
 # Solve the problem with the BFGS method
-solver = BFGS(options=options)
-sol = solver.solve(prob, init_control.copy())
-assert max(abs(sol["Optimizer"].data + 1./2*np.pi)) < 1e-9
-assert sol["Number of iterations"] < 50
+options = {'jtol': 0, 'gtol': 1e-16, 'mem_lim':0}
+solver = BFGS(prob, init_control.copy(), options=options)
+sol = solver.solve()
+assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
+assert sol["iteration"] < 10

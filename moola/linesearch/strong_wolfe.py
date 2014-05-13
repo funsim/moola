@@ -79,6 +79,7 @@ class StrongWolfeLineSearch(LineSearch):
             self.stpmin = 0.
         if self.stpmax == "automatic":
             stpmax = max(4*min(self.start_stp, 1.0), 0.1*f/(-g*self.ftol))
+            print "-g", -g
         else:
             stpmax = self.stpmax
         

@@ -4,7 +4,7 @@ class SteepestDescent(OptimisationAlgorithm):
     """
         Implements the steepest descent method. 
      """
-    def __init__(self, options={}, hooks={}, **args):
+    def __init__(self, problem, initial_point=None, options={}, hooks={}, **args):
         '''
         Initialises the steepest descent algorithm. 
         
@@ -25,15 +25,28 @@ class SteepestDescent(OptimisationAlgorithm):
           '''
 
         # Set the default options values
-        self.tol = options.get("tol", 1e-4)
-        self.gtol = options.get("gtol", 1e-4)
-        self.maxiter = options.get("maxiter", 200)
-        self.disp = options.get("disp", 2)
-        self.line_search = options.get("line_search", "strong_wolfe")
-        self.line_search_options = options.get("line_search_options", {})
-        self.ls = get_line_search_method(self.line_search, self.line_search_options)
-        self.callback = options.get("callback", None)
+        self.problem = problem
+        self.set_options(options)
         self.hooks = hooks
+        self.linesearch = get_line_search_method(self.options['line_search'], self.options['line_search_options'])
+        self.data = {'control'   : initial_point,
+                     'iteration' : 0}
+
+    @classmethod
+    def default_options(cls):
+        # this is defined as a function to prevent defaults from being changed at runtime.
+        default = OptimisationAlgorithm.default_options()
+        default.update(
+            # generic parameters:
+            {"jtol"                   : 1e-4,
+             "gtol"                   : 1e-4,
+             "maxiter"                :  200,
+             "display"                :    2,
+             "line_search"            : "strong_wolfe",
+             "line_search_options"    : {"ftol": 1e-3, "gtol": 0.9, "xtol": 1e-1, "start_stp": 1},
+             "record"                 : ("grad_norm", "objective"),
+             })
+        return default
 
     def __str__(self):
         s = "Steepest descent method.\n"
@@ -42,7 +55,7 @@ class SteepestDescent(OptimisationAlgorithm):
         s += "Maximum iterations:\t %i\n" % self.maxiter 
         return s
 
-    def solve(self, problem, m):
+    def solve(self):
         '''
             Arguments:
              * problem: The optimisation problem.
@@ -50,25 +63,26 @@ class SteepestDescent(OptimisationAlgorithm):
             Return value:
               * solution: The solution to the optimisation problem 
          '''
-        if self.disp >0 : print self
         j = None 
         j_prev = None
 
-        obj = problem.obj
+        m = self.data['control']
+        obj = self.problem.obj
 
         # Start the optimisation loop
         it = 0
         while True:
 
             grad = obj.derivative(m).primal()
+            self.update({'grad_norm' : grad.norm()})
+            self.display(self.iter_status, 2)
 
             if self.hooks.has_key("before_iteration"):
                 self.hooks["before_iteration"](j, grad)
 
             # Check for convergence
-            if self.check_convergence(it, j, j_prev, grad) != 0:
+            if self.check_convergence() != 0:
                 break
-            self.display(it, j, j_prev, grad)
 
             m, alpha = self.do_linesearch(obj, m, -grad)
             j_prev, j = j, obj(m)
@@ -79,8 +93,10 @@ class SteepestDescent(OptimisationAlgorithm):
             if self.hooks.has_key("after_iteration"):
                 self.hooks["after_iteration"](j, grad)
 
-        # Print the reason for convergence
-        self.display(it, j, j_prev, grad)
-        sol = Solution({"Optimizer": m,
-                        "Number of iterations": it})
-        return sol
+            # Print the reason for convergence
+            self.update({"control"   : m,
+                         "iteration" : it,
+                         "grad_norm" : grad.norm(),
+                         "objective" : j})
+            self.record_progress()
+        return self.data

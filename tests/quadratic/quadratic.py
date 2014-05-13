@@ -22,14 +22,14 @@ prob = Problem(obj)
 
 # Solve with steepest descent
 options = {}
-solver = SteepestDescent(options=options)
-sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm() < 1e-10
-assert sol["Number of iterations"] == 1
+solver = SteepestDescent(prob, init_control, options=options)
+sol = solver.solve()
+assert sol["control"].norm() < 1e-10
+assert sol["iteration"] == 1
 
 # Solve with Fletcher-Reeves method 
-options = {'gtol': 1e-10}
-solver = FletcherReeves(options=options)
-sol = solver.solve(prob, init_control)
-assert sol["Optimizer"].norm() < 1e-10
-assert sol["Number of iterations"] == 1
+options = {'gtol': 1e-10, "beta_rule": "fletcher-reeves"}
+solver = NonLinearCG(prob, init_control, options=options)
+sol = solver.solve()
+assert sol["control"].norm() < 1e-10
+assert sol["iteration"] == 1

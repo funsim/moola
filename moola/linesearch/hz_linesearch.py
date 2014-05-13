@@ -57,7 +57,8 @@ def alphatry(alpha, d, x, s, xtmp, gtmp, lsr, psi1=0.2, psi2=2, psi3=0.1, iterfi
     dphi0 = lsr.slope[0]
 
     alphatest = psi1 * alpha
-    alphatest = min(alphatest, alphamax)
+    alphatest = min(alphatest, a,
+            alphamax=self.stpmaxlphamax)
 
     # Use xtmp here
     phitest = d.f(x + alphatest * s)

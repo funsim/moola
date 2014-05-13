@@ -1,4 +1,7 @@
-from moola.linesearch import FixedLineSearch, ArmijoLineSearch, StrongWolfeLineSearch 
+from moola.linesearch import FixedLineSearch
+from moola.linesearch import ArmijoLineSearch
+from moola.linesearch import StrongWolfeLineSearch 
+from moola.linesearch import HagerZhangLineSearch
 from moola.problem import Solution
 
 class OptimisationAlgorithm(object):
@@ -145,8 +148,6 @@ class OptimisationAlgorithm(object):
             self.history = {arg: [] for arg in args}
         for arg in args:
             self.history[arg].append(self.data[arg])
-            
-        
     
     
     
@@ -154,12 +155,14 @@ def get_line_search_method(line_search, line_search_options):
     ''' Takes a name of a line search method and returns its Python implementation as a function. '''
     if line_search == "strong_wolfe":
         ls = StrongWolfeLineSearch(**line_search_options)
+    elif line_search == "approximate_wolfe":
+        ls = HagerZhangLineSearch(**line_search_options)
     elif line_search == "armijo":
         ls = ArmijoLineSearch(**line_search_options)
     elif line_search == "fixed":
         ls = FixedLineSearch(**line_search_options)
     else:
-        raise ValueError, "Unknown line search specified. Valid values are 'armijo', 'strong_wolfe' and 'fixed'."
+        raise ValueError, "Unknown line search specified. Valid values are 'armijo', 'strong_wolfe', 'approximate_wolfe' and 'fixed'."
 
     return ls
 

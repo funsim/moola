@@ -1,4 +1,4 @@
-""" This program optimises an control problem constrained by the Navier-Stokes equation """
+""" This program solves an optimal-control problem constrained by the Navier-Stokes equation """
 from dolfin import *
 from dolfin_adjoint import *
 import moola
@@ -69,11 +69,13 @@ if solver_type == "moola":
 
 ##############  Scipy solver ##############################
 if solver_type == "scipy":
-    m_opt = minimize(rf, method="Newton-CG", tol=1e-40, options={"maxiter": 10})
+    m_opt = minimize(rf, method="L-BFGS-B", tol=1e-40, options={"maxiter": 10})
 
 f.assign(m_opt)
 solve(F == 0, s, bcs=bcu+bcp)
 print "Functional value at optimizier: ", assemble(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx)
 
-plot(m_opt, interactive=True)
+plot(m_opt, title="Optimal control")
+plot(u, title="Optimal velocity")
+interactive()
 print moola.events

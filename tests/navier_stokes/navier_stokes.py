@@ -32,7 +32,7 @@ bcu = [noslip]
 bcp = [inflow, outflow]
 
 # Define the indicator function for the control area
-y = SpatialCoordinate(mesh)[0]
+y = SpatialCoordinate(mesh)[1]
 chi = conditional(y >= 5, 1, 0)
 
 # Define the variational formulation of the Navier-Stokes equations

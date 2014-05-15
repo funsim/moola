@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='moola',
-      version='0.1.2',
+      version='0.1.3',
       description='Moola optimisation package',
       author='Simon Funke',
       author_email='simon@simula.no',

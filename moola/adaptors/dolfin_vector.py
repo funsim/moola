@@ -65,21 +65,23 @@ class DolfinVector(Vector):
         return self.__class__(self.data.copy(deepcopy=True))
 
 
-class Cache(object):
+class RieszMap(object):
     M = None
     M_solver = None
 
-    def mass_matrix(self, V):
+    def riesz_matrix(self, V):
         if self.M is None or True:
             u = dolfin.TrialFunction(V)
             v = dolfin.TestFunction(V)
             M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
+            #M = dolfin.assemble(dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx + u*v*dolfin.ds)
+            #M = dolfin.assemble(dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx + u*v*dolfin.dx)
             self.M = M
         return self.M
 
-    def mass_solve(self, V, x, b):
+    def riesz_solve(self, V, x, b):
         if self.M_solver is None or True:
-            M = self.mass_matrix(V)
+            M = self.riesz_matrix(V)
             M_solver = dolfin.LUSolver(M)
             M_solver.parameters["reuse_factorization"] = True
             self.M_solver = M_solver
@@ -87,7 +89,7 @@ class Cache(object):
         self.M_solver.solve(x, b)
 
 
-cache = Cache()
+rieszmap = RieszMap()
 
 class DolfinPrimalVector(DolfinVector):
     """ A class for representing primal vectors. """
@@ -99,7 +101,7 @@ class DolfinPrimalVector(DolfinVector):
         if isinstance(self.data, dolfin.Function):
             V = self.data.function_space()
 
-            primal_vec = cache.mass_matrix(V) * self.data.vector()
+            primal_vec = rieszmap.riesz_matrix(V) * self.data.vector()
             primal = dolfin.Function(V, primal_vec)
 
             return DolfinDualVector(primal)
@@ -112,7 +114,7 @@ class DolfinPrimalVector(DolfinVector):
         events.increment("Inner product")
 
         V = self.data.function_space()
-        v = cache.mass_matrix(V) * self.data.vector()
+        v = rieszmap.riesz_matrix(V) * self.data.vector()
         return v.inner(self.data.vector())
 
     def norm(self):
@@ -138,7 +140,7 @@ class DolfinDualVector(DolfinVector):
             V = self.data.function_space()
 
             dual = dolfin.Function(V)
-            cache.mass_solve(V, dual.vector(), self.data.vector())
+            rieszmap.riesz_solve(V, dual.vector(), self.data.vector())
 
             return DolfinPrimalVector(dual)
         else:

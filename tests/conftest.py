@@ -1,6 +1,7 @@
 import sys
 import dolfin
 import dolfin_adjoint
+import moola
 
 # Automatically parallelize over all cpus
 #def pytest_cmdline_preparse(args):
@@ -24,3 +25,7 @@ def pytest_runtest_setup(item):
 
     # Reset adjoint state
     dolfin_adjoint.adj_reset()
+
+    # Reset moola Riesz Map cache
+    moola.adaptors.dolfin_vector.rieszmap.reset()
+    

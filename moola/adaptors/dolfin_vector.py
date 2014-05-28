@@ -80,7 +80,7 @@ class RieszMap(object):
         return self.M
 
     def riesz_solve(self, V, x, b):
-        if self.M_solver is None or True:
+        if self.M_solver is None:
             M = self.riesz_matrix(V)
             M_solver = dolfin.LUSolver(M)
             M_solver.parameters["reuse_factorization"] = True
@@ -88,6 +88,8 @@ class RieszMap(object):
 
         self.M_solver.solve(x, b)
 
+    def reset(self):
+        self.M_solver = self.M = None
 
 rieszmap = RieszMap()
 

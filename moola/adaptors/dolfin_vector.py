@@ -1,15 +1,49 @@
 from moola.linalg import Vector
 from moola.misc import events
-import dolfin 
 from math import sqrt
+from ufl.form import Form
+import dolfin 
+
+
+class RieszMap(object):
+
+    def __init__(self, V, inner_product="L2", map_operator=None):
+        self.V = V
+
+        if inner_product is not "custom": 
+            u = dolfin.TrialFunction(V)
+            v = dolfin.TestFunction(V)
+
+            default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dx,
+                             "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx,
+                             "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u), dolfin.grad(v)))*dolfin.dx,
+                            }
+
+            form = default_forms[inner_product]
+            map_operator = dolfin.assemble(form)
+
+        self.map_operator = map_operator
+        self.map_solver = dolfin.LUSolver(self.map_operator)
+        self.map_solver.parameters["reuse_factorization"] = True
+
+    def primal_map(self, x, b):
+        self.map_solver.solve(x, b)
+
+    def dual_map(self, x):
+        return self.map_operator * x
+
 
 class DolfinVector(Vector):
     ''' An implementation for vectors based on Dolfin data types. '''
 
-    def __init__(self, data):
-        ''' Creates a new DolfinVector with a deep-copy of the 
-        underlying data. The parameter 'data' must be 
-        a DolfinVector or a numpy.array. '''
+    def __init__(self, data, inner_product="L2", riesz_map=None):
+        ''' Wraps the Dolfin object `data` in a moola.DolfinVector object. '''
+
+        if riesz_map is None:
+            fn_space = data.function_space()
+            self.riesz_map = RieszMap(fn_space, inner_product)
+        else:
+            self.riesz_map = riesz_map
         self.data = data 
         self.version = 0
 
@@ -62,39 +96,13 @@ class DolfinVector(Vector):
         return self.data.vector().size()
 
     def copy(self):
-        return self.__class__(self.data.copy(deepcopy=True))
+        return self.__class__(self.data.copy(deepcopy=True), 
+                              riesz_map=self.riesz_map)
 
-
-class RieszMap(object):
-    M = None
-    M_solver = None
-
-    def riesz_matrix(self, V):
-        if self.M is None or True:
-            u = dolfin.TrialFunction(V)
-            v = dolfin.TestFunction(V)
-            M = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
-            #M = dolfin.assemble(dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx + u*v*dolfin.ds)
-            #M = dolfin.assemble(dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx + u*v*dolfin.dx)
-            self.M = M
-        return self.M
-
-    def riesz_solve(self, V, x, b):
-        if self.M_solver is None:
-            M = self.riesz_matrix(V)
-            M_solver = dolfin.LUSolver(M)
-            M_solver.parameters["reuse_factorization"] = True
-            self.M_solver = M_solver
-
-        self.M_solver.solve(x, b)
-
-    def reset(self):
-        self.M_solver = self.M = None
-
-rieszmap = RieszMap()
 
 class DolfinPrimalVector(DolfinVector):
     """ A class for representing primal vectors. """
+
 
     def dual(self):
         """ Returns the dual representation. """
@@ -103,10 +111,10 @@ class DolfinPrimalVector(DolfinVector):
         if isinstance(self.data, dolfin.Function):
             V = self.data.function_space()
 
-            primal_vec = rieszmap.riesz_matrix(V) * self.data.vector()
-            primal = dolfin.Function(V, primal_vec)
+            dual_vec = self.riesz_map.dual_map(self.data.vector())
+            dual = dolfin.Function(V, dual_vec)
 
-            return DolfinDualVector(primal)
+            return DolfinDualVector(dual)
         else:
             return self
 
@@ -115,8 +123,7 @@ class DolfinPrimalVector(DolfinVector):
         assert isinstance(vec, DolfinPrimalVector)
         events.increment("Inner product")
 
-        V = self.data.function_space()
-        v = rieszmap.riesz_matrix(V) * self.data.vector()
+        v = self.riesz_map.dual_map(self.data.vector())
         return v.inner(self.data.vector())
 
     def norm(self):
@@ -142,7 +149,7 @@ class DolfinDualVector(DolfinVector):
             V = self.data.function_space()
 
             dual = dolfin.Function(V)
-            rieszmap.riesz_solve(V, dual.vector(), self.data.vector())
+            self.riesz_map.primal_map(dual.vector(), self.data.vector())
 
             return DolfinPrimalVector(dual)
         else:

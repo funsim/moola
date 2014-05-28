@@ -25,7 +25,3 @@ def pytest_runtest_setup(item):
 
     # Reset adjoint state
     dolfin_adjoint.adj_reset()
-
-    # Reset moola Riesz Map cache
-    moola.adaptors.dolfin_vector.rieszmap.reset()
-    

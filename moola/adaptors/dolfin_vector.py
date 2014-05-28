@@ -4,6 +4,14 @@ from math import sqrt
 from ufl.form import Form
 import dolfin 
 
+class IdentityMap(object):
+
+    def primal_map(self, x, b):
+        x.zero()
+        x.axpy(1, b)
+
+    def dual_map(self, x):
+        return x.copy(deepcopy=True)
 
 class RieszMap(object):
 
@@ -22,6 +30,7 @@ class RieszMap(object):
             form = default_forms[inner_product]
             map_operator = dolfin.assemble(form)
 
+        print "Using %s as inner product" % inner_product
         self.map_operator = map_operator
         self.map_solver = dolfin.LUSolver(self.map_operator)
         self.map_solver.parameters["reuse_factorization"] = True
@@ -40,10 +49,13 @@ class DolfinVector(Vector):
         ''' Wraps the Dolfin object `data` in a moola.DolfinVector object. '''
 
         if riesz_map is None:
-            fn_space = data.function_space()
-            self.riesz_map = RieszMap(fn_space, inner_product)
-        else:
-            self.riesz_map = riesz_map
+            if inner_product=="l2":
+                riesz_map = IdentityMap()
+            else:
+                fn_space = data.function_space()
+                riesz_map = RieszMap(fn_space, inner_product)
+
+        self.riesz_map = riesz_map
         self.data = data 
         self.version = 0
 
@@ -114,7 +126,7 @@ class DolfinPrimalVector(DolfinVector):
             dual_vec = self.riesz_map.dual_map(self.data.vector())
             dual = dolfin.Function(V, dual_vec)
 
-            return DolfinDualVector(dual)
+            return DolfinDualVector(dual, riesz_map=self.riesz_map)
         else:
             return self
 
@@ -151,7 +163,7 @@ class DolfinDualVector(DolfinVector):
             dual = dolfin.Function(V)
             self.riesz_map.primal_map(dual.vector(), self.data.vector())
 
-            return DolfinPrimalVector(dual)
+            return DolfinPrimalVector(dual, riesz_map=self.riesz_map)
         else:
             return self
 

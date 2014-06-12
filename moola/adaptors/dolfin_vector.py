@@ -30,7 +30,6 @@ class RieszMap(object):
             form = default_forms[inner_product]
             map_operator = dolfin.assemble(form)
 
-        print "Using %s as inner product" % inner_product
         self.map_operator = map_operator
         self.map_solver = dolfin.LUSolver(self.map_operator)
         self.map_solver.parameters["reuse_factorization"] = True

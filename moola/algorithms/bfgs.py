@@ -108,7 +108,7 @@ class BFGS(OptimisationAlgorithm):
         if self.options["Hinit"] == "default":
             Hinit = LinearOperator(dual_to_primal)
         elif self.options["Hinit"] == "l2":
-            print "Warning: Using l2 as Hinit is currently inefficient"
+            print "Warning: Using l2 as Hinit is experimental and will be slow"
             Hinit = LinearOperator( lambda v: v.primal().__class__(v.data) )  # FIXME: Find a better way how to get the PrimalVector class
         else:
             Hinit = LinearOperator(self.options["Hinit"])

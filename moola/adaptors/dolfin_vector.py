@@ -2,7 +2,7 @@ from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
 from ufl.form import Form
-import dolfin 
+import dolfin
 
 class IdentityMap(object):
 
@@ -11,14 +11,14 @@ class IdentityMap(object):
         x.axpy(1, b)
 
     def dual_map(self, x):
-        return x.copy(deepcopy=True)
+        return x.copy()
 
 class RieszMap(object):
 
     def __init__(self, V, inner_product="L2", map_operator=None):
         self.V = V
 
-        if inner_product is not "custom": 
+        if inner_product is not "custom":
             u = dolfin.TrialFunction(V)
             v = dolfin.TestFunction(V)
 
@@ -55,7 +55,7 @@ class DolfinVector(Vector):
                 riesz_map = RieszMap(fn_space, inner_product)
 
         self.riesz_map = riesz_map
-        self.data = data 
+        self.data = data
         self.version = 0
 
     def bump_version(self):
@@ -70,7 +70,7 @@ class DolfinVector(Vector):
         self.data.vector()[index] = value
 
     def array(self):
-        ''' Returns the vector as a numpy.array object. If local=False, the 
+        ''' Returns the vector as a numpy.array object. If local=False, the
         global array must be returned in a distributed environment. '''
         return self.data.vector().array()
 
@@ -107,7 +107,7 @@ class DolfinVector(Vector):
         return self.data.vector().size()
 
     def copy(self):
-        return self.__class__(self.data.copy(deepcopy=True), 
+        return self.__class__(self.data.copy(deepcopy=True),
                               riesz_map=self.riesz_map)
 
 
@@ -151,7 +151,7 @@ class DolfinDualVector(DolfinVector):
         """ Applies the dual vector to a primal vector. """
         assert isinstance(primal, DolfinPrimalVector)
         return self.data.vector().inner(primal.data.vector())
-    
+
     def primal(self):
         """ Returns the primal representation. """
         events.increment("Dual -> primal map")

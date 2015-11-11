@@ -28,6 +28,10 @@ class DolfinVectorSet(Vector):
         #self.data.vector()[index] = value
         raise NotImplementedError
 
+    @property
+    def data(self):
+        return [vec.data for vec in self.vector_list]
+
     def array(self):
         ''' Returns the vector as a numpy.array object. If local=False, the
         global array must be returned in a distributed environment. '''

@@ -2,21 +2,21 @@ from optimisation_algorithm import *
 
 class SteepestDescent(OptimisationAlgorithm):
     """
-        Implements the steepest descent method. 
+        Implements the steepest descent method.
      """
     def __init__(self, problem, initial_point=None, options={}, hooks={}, **args):
         '''
-        Initialises the steepest descent algorithm. 
-        
+        Initialises the steepest descent algorithm.
+
         Valid options are:
 
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
             - tol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
-            - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
+            - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200.
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
             - line_search: defines the line search algorithm to use. Default: strong_wolfe
-            - line_search_options: additional options for the line search algorithm. The specific options read the help 
+            - line_search_options: additional options for the line search algorithm. The specific options read the help
               for the line search algorithm.
             - an optional callback method which is called after every optimisation iteration.
          * hooks: A dictionary containing user-defined "hook" functions that are called at certain events during the optimisation.
@@ -51,8 +51,8 @@ class SteepestDescent(OptimisationAlgorithm):
     def __str__(self):
         s = "Steepest descent method.\n"
         s += "-"*30 + "\n"
-        s += "Line search:\t\t %s\n" % self.line_search 
-        s += "Maximum iterations:\t %i\n" % self.maxiter 
+        s += "Line search:\t\t %s\n" % self.line_search
+        s += "Maximum iterations:\t %i\n" % self.maxiter
         return s
 
     def solve(self):
@@ -61,9 +61,9 @@ class SteepestDescent(OptimisationAlgorithm):
              * problem: The optimisation problem.
 
             Return value:
-              * solution: The solution to the optimisation problem 
+              * solution: The solution to the optimisation problem
          '''
-        j = None 
+        j = None
         j_prev = None
 
         m = self.data['control']

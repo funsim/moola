@@ -1,6 +1,6 @@
 from moola.linesearch import FixedLineSearch
 from moola.linesearch import ArmijoLineSearch
-from moola.linesearch import StrongWolfeLineSearch 
+from moola.linesearch import StrongWolfeLineSearch
 from moola.linesearch import HagerZhangLineSearch
 from moola.problem import Solution
 
@@ -17,14 +17,14 @@ class OptimisationAlgorithm(object):
         ''' Prints out a description of the algorithm settings. '''
         raise NotImplementedError, 'OptimisationAlgorithm.__str__ is not implemented'
 
-    
+
     @classmethod
     def default_options(cls):
         # this should set any parameter that all algorithms needs to know.
         default = {'display': 10,
                    'maxiter': 100,}
         return default
-    
+
     def set_options(self, user_options):
         # Update options with provided dictionary.
         if not isinstance(user_options, dict):
@@ -57,7 +57,7 @@ class OptimisationAlgorithm(object):
         '''
         if level <= self.options['display']:
             print text
-    
+
     def do_linesearch(self, obj, m, s):
         ''' Performs a linesearch on obj starting from m in direction s. '''
 
@@ -66,11 +66,11 @@ class OptimisationAlgorithm(object):
         def update_m_new(alpha):
             if update_m_new.alpha_new != alpha:
                 m_new.assign(m)
-                m_new.axpy(alpha, s) 
+                m_new.axpy(alpha, s)
                 update_m_new.alpha_new = alpha
         update_m_new.alpha_new = 0
 
-        # Define the real-valued functions in the s-direction 
+        # Define the real-valued functions in the s-direction
         def phi(alpha):
             update_m_new(alpha)
 
@@ -100,19 +100,19 @@ class OptimisationAlgorithm(object):
             status = -1
         if 'gtol' in options and options['gtol'] != None and 'grad_norm' in data:
             if data['grad_norm'] < options['gtol']:
-                status = 1 
+                status = 1
         if 'jtol' in options and options['jtol'] != None and 'delta_J' in data:
             if data['delta_J'] < options['jtol']:
                 status = 2
-        # TODO: implement more tests        
+        # TODO: implement more tests
         self.data['status'] = status
         return status
-     
+
     @property
     def iter_status(self):
         keys = ['iteration', 'objective', 'grad_norm', 'delta_J', 'delta_x']
         return '\t'.join(['{} = {}:'.format(k, self.data[k]) for k in keys if k in self.data])
-        
+
     @property
     def convergence_status(self):
         reasons = {-1: '\nMaximum number of iterations reached.\n',
@@ -122,14 +122,14 @@ class OptimisationAlgorithm(object):
                    -5: 'Algorithm breakdown.'}
         return reasons[self.data['status']]
 
-    
+
     def solve(self):
-        ''' Solves the optimisation problem. 
+        ''' Solves the optimisation problem.
             Arguments:
              * problem: The optimisation problem.
 
             Return value:
-              * solution: The solution to the optimisation problem 
+              * solution: The solution to the optimisation problem
         '''
         raise NotImplementedError, 'OptimisationAlgorithm.solve is not implemented'
 
@@ -148,9 +148,9 @@ class OptimisationAlgorithm(object):
             self.history = {arg: [] for arg in args}
         for arg in args:
             self.history[arg].append(self.data[arg])
-    
-    
-    
+
+
+
 def get_line_search_method(line_search, line_search_options):
     ''' Takes a name of a line search method and returns its Python implementation as a function. '''
     if line_search == "strong_wolfe":

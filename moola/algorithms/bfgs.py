@@ -18,7 +18,7 @@ class LinearOperator(object):
 
 def dual_to_primal(x):
     return x.primal()
- 
+
 
 class LimitedMemoryInverseHessian(LinearOperator):
     '''
@@ -32,7 +32,7 @@ class LimitedMemoryInverseHessian(LinearOperator):
         self.rho = []
         self.theta = theta
         self.theta_rule = theta_rule
-        
+
     def __len__(self):
         assert( len(self.y) == len(self.s) )
         return len(self.y)
@@ -64,14 +64,14 @@ class LimitedMemoryInverseHessian(LinearOperator):
         if self.theta_rule == 0: return t0
         if self.theta_rule == 2: return (t0 + t1) / 2
         if self.theta_rule == 3: return sqrt(t0 * t1)
-        
+
 
     def matvec(self,x,k = -1):
         if k == -1:
             k = len(self)
         if k == 0:
             return self.theta * (self.Hinit * x)
-        rhok, yk, sk = self[k]     
+        rhok, yk, sk = self[k]
         t = x - rhok * x.apply(sk) * yk
         t = self.matvec(t, k-1)
         t = t - rhok * yk.apply(t) * sk
@@ -80,22 +80,22 @@ class LimitedMemoryInverseHessian(LinearOperator):
 
 class BFGS(OptimisationAlgorithm):
     """
-        Implements the BFGS method. 
+        Implements the BFGS method.
      """
     def __init__(self, problem, initial_point = None, options={}, hooks={}, **args):
         '''
-        Initialises the L-BFGS algorithm. 
-        
+        Initialises the L-BFGS algorithm.
+
         Valid options are:
-        
+
          * Hinit: Initial approximation of the inverse Hessian.
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
             - tol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
-            - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200. 
+            - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200.
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - line_search: defines the line search algorithm to use. Default: strong_wolfe
-            - line_search_options: additional options for the line search algorithm. The specific options read the help 
+            - line_search_options: additional options for the line search algorithm. The specific options read the help
               for the line search algorithm.
             - an optional callback method which is called after every optimisation iteration.
          * hooks: A dictionariy containing user-defined "hook" functions that are called at certain events during the optimisation.
@@ -117,8 +117,8 @@ class BFGS(OptimisationAlgorithm):
         self.data = {'control'   : initial_point,
                      'iteration' : 0,
                      'lbfgs'     : LimitedMemoryInverseHessian(Hinit, self.options['mem_lim']) }
-        
-        
+
+
 
     @classmethod
     def default_options(cls):
@@ -139,11 +139,11 @@ class BFGS(OptimisationAlgorithm):
              "Hinit"                  : "default",
              })
         return default
-    
+
     def __str__(self):
         s = "L-BFGS method.\n"
         s += "-"*30 + "\n"
-        s += "Line search:\t\t %s\n" % self.options['line_search'] 
+        s += "Line search:\t\t %s\n" % self.options['line_search']
         s += "Maximum iterations:\t %i\n" % self.options['maxiter']
         return s
 
@@ -153,13 +153,13 @@ class BFGS(OptimisationAlgorithm):
              * problem: The optimisation problem.
 
             Return value:
-              * solution: The solution to the optimisation problem 
+              * solution: The solution to the optimisation problem
          '''
         self.display( self.__str__(), 1)
 
         objective = self.problem.obj
         options = self.options
-        
+
         Hk = self.data['lbfgs']
         xk = self.data['control']
         it = self.data['iteration']
@@ -170,26 +170,26 @@ class BFGS(OptimisationAlgorithm):
         self.update({'objective' : J,
                      'grad_norm' : dJ_xk.primal_norm()})
         self.record_progress()
-        
+
         # Start the optimisation loop
         while self.check_convergence() == 0:
             self.display(self.iter_status, 2)
             # compute search direction
             pk = - (Hk * dJ_xk)
             if it == 0:
-                # then normalize; 
+                # then normalize;
                 pk.scale( 1./  dJ_xk.primal_norm())
-            
+
             # do a line search and update
             xk, ak = self.do_linesearch(objective, xk, pk)
             pk.scale(ak)
-            
+
             J, oldJ = objective(xk), J
 
             # evaluate gradient at the new point
             dJ_xk, dJ_old = objective.derivative(xk), dJ_xk
             yk = dJ_xk - dJ_old
-            
+
             # update the approximate Hessian
             Hk.update(yk, pk)
 

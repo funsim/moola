@@ -1,13 +1,13 @@
 from line_search import LineSearch
 from dcsrch import dcsrch
 from numpy import zeros
-from dolfin import info_red
+from logging import error
 
 class StrongWolfeLineSearch(LineSearch):
     def __init__(self, ftol=1e-4, gtol=0.9, xtol=1e-1, start_stp=1.0, stpmin = None, stpmax="automatic", verify=False, ignore_warnings=False):
         '''
-        This class implements a line search algorithm whose steps 
-        satisfy the strong Wolfe conditions (i.e. they satisfies a 
+        This class implements a line search algorithm whose steps
+        satisfy the strong Wolfe conditions (i.e. they satisfies a
         sufficient decrease condition and a curvature condition).
 
         The algorithm is designed to find a step 'stp' that satisfies
@@ -32,23 +32,23 @@ class StrongWolfeLineSearch(LineSearch):
            ftol           | a nonnegative tolerance for the sufficient decrease condition.
            gtol           | a nonnegative tolerance for the curvature condition.
            xtol           | a nonnegative relative tolerance for an acceptable step.
-           start_stp      | a guess for an initial step size. 
+           start_stp      | a guess for an initial step size.
            stpmin         | a nonnegative lower bound for the step.
            stpmax         | a nonnegative upper bound for the step.
-           verify         | if True, the step is compared to the Fortran implementation 
+           verify         | if True, the step is compared to the Fortran implementation
                           | (note: this assumes that the Python module dcsrch_fortran is compiled
                           |  and in the PYTHONPATH)
-          ignore_warnings | Continue if the line search ends with a warnings (e.g. stp = stpmax). 
+          ignore_warnings | Continue if the line search ends with a warnings (e.g. stp = stpmax).
                           | Default: True
 
         References:
-         Mor'e, J.J., and Thuente, D.J., 1992, Line search algorithms with guaranteed 
+         Mor'e, J.J., and Thuente, D.J., 1992, Line search algorithms with guaranteed
               sufficient decrease: Preprint MCS-P330-1092, Argonne National Laboratory.
-         Averick, B.M., and Mor'e, J.J., 1993, FORTRAN subroutines dcstep and dcsrch 
+         Averick, B.M., and Mor'e, J.J., 1993, FORTRAN subroutines dcstep and dcsrch
               from MINPACK-2, 1993, Argonne National Laboratory and University of Minnesota.
         '''
 
-        self.ftol            = ftol 
+        self.ftol            = ftol
         self.gtol            = gtol
         self.xtol            = xtol
         self.start_stp       = start_stp
@@ -58,15 +58,15 @@ class StrongWolfeLineSearch(LineSearch):
         self.ignore_warnings = ignore_warnings
 
     def search(self, phi, phi_dphi):
-        ''' Performs the line search on the function phi. 
+        ''' Performs the line search on the function phi.
 
             phi must be a function [0, oo] -> R.
-            phi_dphi must evaluate phi and its derivative, and 
+            phi_dphi must evaluate phi and its derivative, and
             must be a function [0, oo] -> (R, R).
 
-            The return value is a step that satisfies the strong Wolfe condition. 
+            The return value is a step that satisfies the strong Wolfe condition.
         '''
-            
+
         # Set up the variables for dscrch
         isave = zeros(3)
         dsave = zeros(14)
@@ -74,7 +74,7 @@ class StrongWolfeLineSearch(LineSearch):
 
         f, g = phi_dphi(0)
 
-        # Compute an estimate for the maximum step size 
+        # Compute an estimate for the maximum step size
         if not self.stpmin:
             self.stpmin = 0.
         if self.stpmax == "automatic":
@@ -82,7 +82,7 @@ class StrongWolfeLineSearch(LineSearch):
             print "-g", -g
         else:
             stpmax = self.stpmax
-        
+
         stp = min(self.start_stp, stpmax)
 
         while True:
@@ -108,32 +108,32 @@ class StrongWolfeLineSearch(LineSearch):
                 # Recompute the step with the Fortran implementation and compare
                 stp_fort = self.search_fortran(phi, phi_dphi, stpmax)
                 if stp_fort is not None and stp_fort != stp:
-                    raise RuntimeError, "The line search verification failed!" 
+                    raise RuntimeError, "The line search verification failed!"
 
             return stp
 
     def search_fortran(self, phi, phi_dphi, stpmax):
         ''' Performs the line search on the function phi using the Fortran implementation
-            of the line search algorithm. 
+            of the line search algorithm.
 
             phi must be a function [0, oo] -> R.
-            phi_dphi must evaluate phi and its derivative, and 
+            phi_dphi must evaluate phi and its derivative, and
             must be a function [0, oo] -> (R, R).
 
-            The return value is a step that satisfies the strong Wolfe condition. 
+            The return value is a step that satisfies the strong Wolfe condition.
         '''
 
-        try: 
+        try:
             import pyswolfe
             dphi = lambda x: phi_dphi(x)[1]
-            ls_fort = pyswolfe.StrongWolfeLineSearch(phi(0), dphi(0), 1.0, phi, dphi, gtol=self.gtol, 
-                                                     xtol=self.xtol, ftol=self.ftol, stp=self.start_stp, 
+            ls_fort = pyswolfe.StrongWolfeLineSearch(phi(0), dphi(0), 1.0, phi, dphi, gtol=self.gtol,
+                                                     xtol=self.xtol, ftol=self.ftol, stp=self.start_stp,
                                                      stpmin=self.stpmin, stpmax=stpmax)
             ls_fort.search()
-            return ls_fort.stp 
+            return ls_fort.stp
 
         except ImportError:
-            info_red("The line search could not be verified. Did you compile the pyswolfe Fortran module?")
+            error("The line search could not be verified. Did you compile the pyswolfe Fortran module?")
 
     def __csrch__(self, f, g, stp, task, isave, dsave, stpmax):
         stp, task, isave, dsave = dcsrch(stp, f, g, self.ftol, self.gtol, self.xtol, task, self.stpmin, stpmax, isave, dsave)

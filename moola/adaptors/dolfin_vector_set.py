@@ -43,7 +43,8 @@ class DolfinVectorSet(Vector):
 
     def __hash__(self):
         ''' Returns a hash of the vector '''
-        return hash(self.vector_list)
+        hashes = tuple([hash(vec) for vec in self.vector_list])
+        return hash(hashes)
 
     def axpy(self, a, x):
         ''' Adds a*x to the function. '''

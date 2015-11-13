@@ -71,7 +71,11 @@ class DolfinVectorSet(Vector):
 
 class DolfinPrimalVectorSet(DolfinVectorSet):
     """ A class for representing primal vectors. """
-
+    def __init__(self, vector_list):
+        for i, v in enumerate(vector_list):
+            if not isinstance(v, DolfinPrimalVector):
+                raise TypeError("Vector with index {} is not a DolfinPrimalVector.".format(i))
+        DolfinVectorSet.__init__(self, vector_list)
 
     def dual(self):
         """ Returns the dual representation. """
@@ -93,6 +97,11 @@ class DolfinPrimalVectorSet(DolfinVectorSet):
 
 class DolfinDualVectorSet(DolfinVectorSet):
     """ A class for representing dual vectors. """
+    def __init__(self, vector_list):
+        for i, v in enumerate(vector_list):
+            if not isinstance(v, DolfinDualVector):
+                raise TypeError("Vector with index {} is not a DolfinDualVector.".format(i))
+        DolfinVectorSet.__init__(self, vector_list)
 
     def apply(self, primal):
         """ Applies the dual vector to a primal vector. """

@@ -15,7 +15,7 @@ class IdentityMap(object):
 
 class RieszMap(object):
 
-    def __init__(self, V, inner_product="L2", map_operator=None):
+    def __init__(self, V, inner_product="L2", map_operator=None, inverse = "default"):
         self.V = V
 
         if inner_product is not "custom":
@@ -31,8 +31,30 @@ class RieszMap(object):
             map_operator = dolfin.assemble(form)
 
         self.map_operator = map_operator
-        self.map_solver = dolfin.LUSolver(self.map_operator)
-        self.map_solver.parameters["reuse_factorization"] = True
+        if inverse in ("default", "lu"):
+            self.map_solver = dolfin.LUSolver(self.map_operator)
+            self.map_solver.parameters["reuse_factorization"] = True
+
+        elif inverse == "jacobi":
+            self.map_solver = dolfin.PETScKrylovSolver()
+            self.map_solver.set_operator(self.map_operator)
+            self.map_solver.ksp().setType("preonly")
+            self.map_solver.ksp().getPC().setType("jacobi")
+
+        elif inverse == "sor":
+            self.map_solver = dolfin.PETScKrylovSolver()
+            self.map_solver.set_operator(self.map_operator)
+            self.map_solver.ksp().setType("preonly")
+            self.map_solver.ksp().getPC().setType("sor")
+
+        elif inverse == "amg":
+            self.map_solver = dolfin.PETScKrylovSolver()
+            self.map_solver.set_operator(self.map_operator)
+            self.map_solver.ksp().setType("preonly")
+            self.map_solver.ksp().getPC().setType("hypre")
+            
+        else:
+            self.map_solver = inverse
 
     def primal_map(self, x, b):
         self.map_solver.solve(x, b)

@@ -19,14 +19,12 @@ class DolfinVectorSet(Vector):
         self.vector_list = vector_list
 
     def __getitem__(self, index):
-        ''' Returns the value of the (local) index. '''
-        #return self.data.vector()[index]
-        raise NotImplementedError
+        ''' Returns the subvector with given index. '''
+        return self.vector_list[index]
 
     def __setitem__(self, index, value):
-        ''' Sets the value of the (local) index. '''
-        #self.data.vector()[index] = value
-        raise NotImplementedError
+        ''' Sets the subvector with the given index. '''
+        self.vector_list[index] = value
 
     @property
     def data(self):

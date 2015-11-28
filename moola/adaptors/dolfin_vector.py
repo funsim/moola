@@ -29,7 +29,6 @@ class RieszMap(object):
 
             form = default_forms[inner_product]
             map_operator = dolfin.assemble(form)
-
         self.map_operator = map_operator
         if inverse in ("default", "lu"):
             self.map_solver = dolfin.LUSolver(self.map_operator)

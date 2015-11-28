@@ -2,21 +2,63 @@ from dolfin_vector import DolfinVector, DolfinPrimalVector, DolfinDualVector
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
+from numpy import array, zeros
+
+class RieszMapSet(object):
+
+    def __init__(self, inner_product="l2", map_operator=None, inverse = "default"):
+        
+        if inner_product == "l2":
+            self.riesz_map = 1
+            self.riesz_inv = 1
+            
+        elif inner_product == "custom":
+            from numpy import ndarray, equal
+            from scipy.sparse.linalg import LinearOperator, aslinearoperator
+            if not isinstance(map_operator, (ndarray, LinearOperator)) or not equal(*map_operator.shape):
+                raise TypeError("only square numpy arrays are currently supported")
+            self.riesz_map = aslinearoperator(map_operator)
+            
+            if inverse in ("default", "lu") and isinstance(map_operator, ndarray):
+                from numpy.linalg import inv
+                self.riesz_inv = aslinearoperator(inv(map_operator))
+            
+            else:
+                self.riesz_inv = inverse
+        
+        self.inner_product = inner_product
+                
+    def primal_map(self, x, b):
+        b[:] = self.riesz_inv * x
+
+    def dual_map(self, x):
+        return self.riesz_map * x
 
 class DolfinVectorSet(Vector):
 
-    def __init__(self, vector_list):
-        ''' An implementation for set of vectors based on FEniCS data types.
+    def __init__(self, vector_list, riesz_map = None):
+        '''An implementation for set of vectors based on FEniCS data types.
+        Currently supports only simple Riesz maps of numpy.ndarry type.
 
         Args:
             vector_list (list): A list with moola.DolfinVector
+            
+            riesz_map (array): An operator to be applied to the vector
+            of controls prior to the individual control Riesz maps.
+
         '''
 
         for vec in vector_list:
             if not isinstance(vec, DolfinVector):
                 from IPython import embed; embed()
                 raise ValueError, "vector_list must be a list of DolfinVectors"
-        self.vector_list = vector_list
+        self.vector_list = zeros(len(vector_list), dtype = object)
+        self.vector_list[:] = vector_list
+        
+        if riesz_map == None:
+            riesz_map = RieszMapSet("l2")
+            
+        self.riesz_map = riesz_map
 
     def __getitem__(self, index):
         ''' Returns the subvector with given index. '''
@@ -71,15 +113,21 @@ class DolfinVectorSet(Vector):
 
 class DolfinPrimalVectorSet(DolfinVectorSet):
     """ A class for representing primal vectors. """
-    def __init__(self, vector_list):
+    def __init__(self, vector_list, riesz_map = None):
         for i, v in enumerate(vector_list):
             if not isinstance(v, DolfinPrimalVector):
                 raise TypeError("Vector with index {} is not a DolfinPrimalVector.".format(i))
-        DolfinVectorSet.__init__(self, vector_list)
+        DolfinVectorSet.__init__(self, vector_list, riesz_map = riesz_map)
 
     def dual(self):
         """ Returns the dual representation. """
-        return DolfinDualVectorSet([vec.dual() for vec in self.vector_list])
+        if self.riesz_map.inner_product == "l2":
+            return DolfinDualVectorSet([vec.dual() for vec in self.vector_list],
+                                       riesz_map = self.riesz_map)
+        else:
+            return DolfinDualVectorSet([vec.dual() for vec in self.riesz_map.riesz_map * self.vector_list],
+                                       riesz_map = self.riesz_map)
+            
 
     def inner(self, vec):
         """ Computes the inner product with vec. """
@@ -97,11 +145,11 @@ class DolfinPrimalVectorSet(DolfinVectorSet):
 
 class DolfinDualVectorSet(DolfinVectorSet):
     """ A class for representing dual vectors. """
-    def __init__(self, vector_list):
+    def __init__(self, vector_list, riesz_map = None):
         for i, v in enumerate(vector_list):
             if not isinstance(v, DolfinDualVector):
                 raise TypeError("Vector with index {} is not a DolfinDualVector.".format(i))
-        DolfinVectorSet.__init__(self, vector_list)
+        DolfinVectorSet.__init__(self, vector_list, riesz_map)
 
     def apply(self, primal):
         """ Applies the dual vector to a primal vector. """
@@ -110,9 +158,15 @@ class DolfinDualVectorSet(DolfinVectorSet):
 
     def primal(self):
         """ Returns the primal representation. """
-        events.increment("Dual -> primal map")
-
-        return DolfinPrimalVectorSet([vec.primal() for vec in self.vector_list])
+        #events.increment("Dual -> primal map")
+        if self.riesz_map.inner_product == "l2":
+            return DolfinPrimalVectorSet([vec.primal() for vec in self.vector_list], 
+                                         riesz_map = self.riesz_map)
+        else:
+            
+            return DolfinPrimalVectorSet([vec.primal() for vec in self.riesz_map.riesz_inv*self.vector_list],
+                                         riesz_map = self.riesz_map)
+            
 
     def primal_norm(self):
         """ Computes the norm of the primal representation. """

@@ -49,7 +49,7 @@ solve(F == 0, s, bcs=bcu+bcp)
 # Define the optimisation proble,
 alpha = Constant(1e-4)
 J = Functional(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx)
-m = InitialConditionParameter(f)
+m = Control(f)
 rf = ReducedFunctional(J, m)
 
 # Solve the optimisation problem

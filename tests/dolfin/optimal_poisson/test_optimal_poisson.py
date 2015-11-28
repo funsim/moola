@@ -2,6 +2,7 @@ from dolfin import *
 from dolfin_adjoint import *
 import pytest
 import moola
+from mshr import Rectangle
 
 
 dolfin.set_log_level(ERROR)
@@ -23,8 +24,8 @@ def randomly_refine(initial_mesh, ratio_to_refine= .3):
         if numpy.random.rand() < ratio_to_refine:
             cf[k] = True
     return refine(initial_mesh, cell_markers = cf)
-    
-    
+
+
 
 @pytest.fixture(params=[("structured mesh", 16), ("nonstructured mesh", 3)])
 def moola_problem(request):
@@ -38,30 +39,30 @@ def moola_problem(request):
             mesh = randomly_refine(mesh)
     V = FunctionSpace(mesh, 'CG', 2)
     Q = FunctionSpace(mesh, "CG", 2)
-    
+
     u = Function(V, name='State')
     expr = Expression('2*x[0]-1.')
 
     bc = DirichletBC(Q, 0.0, "on_boundary")
     m = interpolate(expr, Q)
-    
+
     alpha = Constant(0.1)
-    
+
     u_d = interpolate(Expression('pow(sin(pi*x[0])*sin(pi*x[1]),2)'), Q)
     #from numpy.random import rand
     #epsilon = 0.05
     #u_d.vector()[:] += epsilon * (rand(len(u_d.vector()))*2 - 1)
     #u_d = Function(V)
     #solve_pde(u_d, V, m_ex)
-    
+
     J = Functional((.5*inner(u-u_d, u-u_d))*dx+.5*alpha*m**2*dx)
 
     # Run the forward model once to create the annotation
     solve_pde(u, V, m)
 
-    # Run the optimisation 
-    rf = ReducedFunctional(J, InitialConditionParameter(m, value=m))
-    
+    # Run the optimisation
+    rf = ReducedFunctional(J, Control(m, value=m))
+
     x_init = moola.DolfinPrimalVector(m)
     options = {'jtol': None, 'gtol': None, 'display': 3, 'maxiter' : 100,}
     return rf.moola_problem(), x_init, options
@@ -89,7 +90,7 @@ def test_LBFGS(bfgs_options, bfgs_expected, moola_problem):
                            ({"jtol": 1e-5, "beta_rule": "hager-zhang"}, [9]),
                            #({"gtol": 1e-7, "beta_rule": "hestenes-stiefel"}, 33),
                            #({"jtol": 1e-12, "beta_rule": "hestenes-stiefel"}, 32)
-                           ])                           
+                           ])
 def test_NonlinearCG(nlcg_options, nlcg_expected, moola_problem):
     problem, x_init, options = moola_problem
     options.update(nlcg_options)
@@ -167,7 +168,7 @@ def compute_Ainvx(x, V):
 def compute_errors(u, m):
     solve_pde(u, V, m)
 
-    
+
 
     # Define the analytical expressions
     m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
@@ -204,14 +205,14 @@ if __name__ == "__main__":
     W = FunctionSpace(mesh, "CG", 1)
     m = Function(W, name='Control')
     alpha = Constant(1e-5)
-    u_d = 1/(2*pi**2)*sin(pi*x[0])*sin(pi*x[1]) 
+    u_d = 1/(2*pi**2)*sin(pi*x[0])*sin(pi*x[1])
 
     J = Functional((.5*inner(u-u_d, u-u_d))*dx+.5*alpha*m**2*dx)
 
     # Run the forward model once to create the annotation
     solve_pde(u, V, m)
 
-    # Run the optimisation 
+    # Run the optimisation
     rf = ReducedFunctional(J, InitialConditionParameter(m, value=m))
 
     opt_package = "moola" # Choose from moola, scipy, ipopt
@@ -226,10 +227,10 @@ if __name__ == "__main__":
 
         problem = rf.moola_problem()
         m_moola = moola.DolfinPrimalVector(m)
-        
+
         def dual_to_primal(x):
                 return x.primal()
-        
+
         def precond_matvec(x):
             y1 = dual_to_primal(x)
             y2 = compute_Ax(y1,V)
@@ -251,8 +252,8 @@ if __name__ == "__main__":
             b =  M * x
             u = Function(V, b)
             return moola.DolfinDualVector(u)
-        
-       
+
+
 
         def test2(m):
             x = m.data.vector().copy()
@@ -262,18 +263,18 @@ if __name__ == "__main__":
             solve(M, x, b)
             b =  A * x
             solve(M, x, b)
-            
+
             u = Function(V, x)
             return moola.DolfinPrimalVector(u)
-            
-        
+
+
         from moola.algorithms.bfgs import LinearOperator
         C = LinearOperator(dual_to_primal)
         B = LinearOperator(test2)
         H = LinearOperator(test)
         #embed()
         solver = moola.NewtonCG(problem, m_moola, precond = B,
-                                options={'gtol': 1e-14, 'maxiter': 100, 
+                                options={'gtol': 1e-14, 'maxiter': 100,
                                          'ncg_reltol':1e-10, 'ncg_hesstol': 1e-50, 'display':3})
         #solver = moola.BFGS(problem, m_moola,
         #                    options={'jtol':None, 'gtol': 1e-6, 'maxiter': 100, 'mem_lim': 10})
@@ -322,7 +323,7 @@ class MyFunctional(Functional):
 
     def derivative(self, val):
         x, y = val.data
-        #print "current x =", x, y 
+        #print "current x =", x, y
 
         dx = - 2*(1 - x) + 100*2*(y - x**2) * (-2*x)
         dy = 100 * 2 * (y - x**2)
@@ -346,9 +347,9 @@ def moola_problem():
     objective = MyFunctional()
     x_init = NumpyPrimalVector((-3, -4))
     options = {'jtol': None, 'gtol': None, 'display': 3,
-               'maxiter' : 1000,}# 'line_search_options' :{'xtol':1e-25, 'ignore_warnings':True}} 
-    
-    
+               'maxiter' : 1000,}# 'line_search_options' :{'xtol':1e-25, 'ignore_warnings':True}}
+
+
     return Problem(objective), x_init, options
 
 @pytest.mark.parametrize("bfgs_options,bfgs_expected",
@@ -439,12 +440,12 @@ def test_HybridCG(hybrid_options, hybrid_expected, moola_problem):
 
 
 
-    
-    
 
-    
-     
-    
+
+
+
+
+
 '''
 
 if __name__ == '__main__':
@@ -454,7 +455,7 @@ if __name__ == '__main__':
         param = ("nonstructured mesh", 3)
     req = Req()
     prob, x0, opt = moola_problem(req)
-    
+
     #opt.update({"gtol": 1e-5, 'mem_lim': 200, 'maxiter': 20})
     #opt.update({"gtol": 1e-8, 'beta_rule': 'hager-zhang', 'maxiter': 5})
     opt.update({'gtol':1e-3, 'ncg_hesstol':1e-20, 'ncg_reltol': 1e-1})
@@ -462,21 +463,21 @@ if __name__ == '__main__':
     #solver = moola.BFGS(prob, x0, options = opt)
     #solver = moola.NonLinearCG(prob, x0, options = opt)
     solver = moola.NewtonCG(prob, x0, options = opt)
-    
-    
-    
+
+
+
     #opt.update({"gtol": 1e-6, 'ncg_hesstol': 1e-20, 'maxiter': 100})
     #solver = moola.NewtonCG(prob, x0, options = opt)
 
     #opt.update({"jtol": 1e-8, 'mem_lim': 30, 'maxiter': 100})
     #solver = moola.BFGS(prob, x0, options = opt)
-    
-    
+
+
     sol = solver.solve()
     mh = sol['control'].data
 
     V = mh.function_space()
-   
+
     plot(mh)
     V = FunctionSpace(mh.function_space().mesh(), 'CG', 5)
     u = Function(V)

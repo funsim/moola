@@ -1,5 +1,5 @@
 from dolfin import *
-from dolfin_adjoint import solve, Functional, SteadyParameter, ReducedFunctional, adj_reset
+from dolfin_adjoint import solve, Functional, Control, ReducedFunctional, adj_reset
 import moola
 import pytest
 set_log_level(ERROR)
@@ -17,7 +17,7 @@ def moola_problem():
     solve(F == 0, u, bc)
 
     J = Functional(inner(u, u)*dx)
-    m = SteadyParameter(f)
+    m = Control(f)
     rf = ReducedFunctional(J, m)
 
     obj = rf.moola_problem().obj

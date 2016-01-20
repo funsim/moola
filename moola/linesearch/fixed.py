@@ -9,7 +9,7 @@ class FixedLineSearch(LineSearch):
 
         self.start_stp    = start_stp
 
-    def search(self, phi, phi_dphi):
+    def search(self, phi, phi_dphi, phi_dphi0):
         ''' Performs the dummy line search on the function phi. 
 
             The return value is the starting step. 

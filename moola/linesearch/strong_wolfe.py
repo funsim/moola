@@ -57,7 +57,7 @@ class StrongWolfeLineSearch(LineSearch):
         self.verify          = verify
         self.ignore_warnings = ignore_warnings
 
-    def search(self, phi, phi_dphi):
+    def search(self, phi, phi_dphi, phi_dphi0):
         ''' Performs the line search on the function phi.
 
             phi must be a function [0, oo] -> R.
@@ -72,7 +72,7 @@ class StrongWolfeLineSearch(LineSearch):
         dsave = zeros(14)
         task = "START"
 
-        f, g = phi_dphi(0)
+        f, g = phi_dphi0
 
         # Compute an estimate for the maximum step size
         if not self.stpmin:

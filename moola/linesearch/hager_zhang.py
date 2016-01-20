@@ -15,7 +15,7 @@ class HagerZhangLineSearch(LineSearch):
         self.stpmax          = stpmax
         self.display         = display
 
-    def search(self, phi, phi_dphi):
+    def search(self, phi, phi_dphi, phi_dphi0):
         ''' Performs the line search on the function phi. 
 
             phi must be a function [0, oo] -> R.

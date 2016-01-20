@@ -51,7 +51,7 @@ class ArmijoLineSearch(LineSearch):
         if it > 4:
             self.start_stp /= 2
 
-    def search(self, phi, phi_dphi):
+    def search(self, phi, phi_dphi, phi_dphi0):
         ''' Performs the line search on the function phi. 
 
             phi must be a function [0, oo] -> R.
@@ -62,7 +62,7 @@ class ArmijoLineSearch(LineSearch):
         '''
             
         stp = self.start_stp
-        finit, ginit = phi_dphi(0)
+        finit, ginit = phi_dphi0
         if ginit >= 0:
             raise Warning, "The gradient is not a descent direction"
         f = finit 

@@ -2,7 +2,7 @@ from dolfin_vector import DolfinVector, DolfinPrimalVector, DolfinDualVector
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
-from numpy import array, zeros
+from numpy import array, zeros, ndarray, eye
 
 class RieszMapSet(object):
 
@@ -29,10 +29,20 @@ class RieszMapSet(object):
         self.inner_product = inner_product
                 
     def primal_map(self, x, b):
-        b[:] = self.riesz_inv * x
+        if isinstance(self.riesz_inv, ndarray):
+            b[:] = self.riesz_inv.dot(x.vector_list)
+        else:
+            b[:] = self.riesz_inv * x.vector_list
 
     def dual_map(self, x):
-        return self.riesz_map * x
+        if isinstance(self.riesz_map, ndarray):
+            b[:] = self.riesz_map.dot(x.vector_list)
+        else:
+            b[:] = self.riesz_map * x.vector_list
+
+class IdentityMapSet(RieszMapSet):
+    def __init__(self):
+        RieszMapSet.__init__(self, inner_product = "l2")
 
 class DolfinVectorSet(Vector):
 
@@ -50,7 +60,6 @@ class DolfinVectorSet(Vector):
 
         for vec in vector_list:
             if not isinstance(vec, DolfinVector):
-                from IPython import embed; embed()
                 raise ValueError, "vector_list must be a list of DolfinVectors"
         self.vector_list = zeros(len(vector_list), dtype = object)
         self.vector_list[:] = vector_list
@@ -59,6 +68,9 @@ class DolfinVectorSet(Vector):
             riesz_map = RieszMapSet("l2")
             
         self.riesz_map = riesz_map
+
+    def __len__(self):
+        return len(self.vector_list)
 
     def __getitem__(self, index):
         ''' Returns the subvector with given index. '''
@@ -108,7 +120,10 @@ class DolfinVectorSet(Vector):
 
     def copy(self):
         vector_list_cpy = [vec.copy() for vec in self.vector_list]
-        return self.__class__(vector_list_cpy)
+        if hasattr(self, "riesz_map"):
+            return self.__class__(vector_list_cpy, riesz_map = self.riesz_map)
+        else:
+            return self.__class__(vector_list_cpy)
 
 
 class DolfinPrimalVectorSet(DolfinVectorSet):
@@ -163,8 +178,9 @@ class DolfinDualVectorSet(DolfinVectorSet):
             return DolfinPrimalVectorSet([vec.primal() for vec in self.vector_list], 
                                          riesz_map = self.riesz_map)
         else:
-            
-            return DolfinPrimalVectorSet([vec.primal() for vec in self.riesz_map.riesz_inv*self.vector_list],
+            primal_vecs = zeros(len(self), dtype = "object")
+            primal_vecs[:] = [v.primal() for v in self.vector_list]
+            return DolfinPrimalVectorSet(self.riesz_map.riesz_inv * primal_vecs,
                                          riesz_map = self.riesz_map)
             
 

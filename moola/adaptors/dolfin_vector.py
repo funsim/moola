@@ -52,9 +52,16 @@ class RieszMap(object):
             self.map_solver.ksp().setType("preonly")
             self.map_solver.ksp().getPC().setType("hypre")
             
+        elif isinstance(inverse, dolfin.GenericMatrix):
+            self.map_solver = dolfin.PETScKrylovSolver()
+            self.map_solver.set_operators(self.map_operator, inverse)
+            self.map_solver.ksp().setType("preonly")
+            self.map_solver.ksp().getPC().setType("mat")
+            
+            
         else:
             self.map_solver = inverse
-
+        self.solver_type = inverse
     def primal_map(self, x, b):
         self.map_solver.solve(x, b)
 

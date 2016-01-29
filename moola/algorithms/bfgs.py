@@ -24,7 +24,7 @@ class LimitedMemoryInverseHessian(LinearOperator):
     '''
     This class implements the limit-memory BFGS approximation of the inverse Hessian.
     '''
-    def __init__(self, Hinit, mem_lim = 10, theta = 1, theta_rule = 0):
+    def __init__(self, Hinit, mem_lim = 10, theta = 1.0, theta_rule = 1):
         self.Hinit = Hinit
         self.mem_lim = mem_lim
         self.y   = []
@@ -183,7 +183,6 @@ class BFGS(OptimisationAlgorithm):
             # do a line search and update
             xk, ak = self.do_linesearch(objective, xk, pk)
             pk.scale(ak)
-
             J, oldJ = objective(xk), J
 
             # evaluate gradient at the new point

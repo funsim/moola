@@ -90,8 +90,10 @@ class BFGS(OptimisationAlgorithm):
 
          * Hinit: Initial approximation of the inverse Hessian.
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
-            - tol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
+            - jtol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
+            - rjtol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
+            - rgtol: Relative version of the gradient stopping criterion.
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200.
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - line_search: defines the line search algorithm to use. Default: strong_wolfe
@@ -127,7 +129,9 @@ class BFGS(OptimisationAlgorithm):
         default.update(
             # generic parameters:
             {"jtol"                   : 1e-4,
+             "rjtol"                  : 1e-6,
              "gtol"                   : 1e-4,
+             "rgtol"                  : 1e-5,
              "maxiter"                :  200,
              "display"                :    2,
              "line_search"            : "strong_wolfe",
@@ -167,8 +171,11 @@ class BFGS(OptimisationAlgorithm):
         # compute initial objective and gradient
         J = objective(xk)
         dJ_xk = objective.derivative(xk)
+        dJ_norm = dJ_xk.primal_norm()
         self.update({'objective' : J,
-                     'grad_norm' : dJ_xk.primal_norm()})
+                     'initial_J' : J,
+                     'grad_norm' : dJ_norm,
+                     'initial_grad_norm': dJ_norm})
         self.record_progress()
 
         # Start the optimisation loop

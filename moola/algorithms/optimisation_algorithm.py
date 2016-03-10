@@ -99,16 +99,22 @@ class OptimisationAlgorithm(object):
         data = self.data
         options = self.options
         status = 0
-        if self.data['iteration'] >= self.options['maxiter']:
+        if data['iteration'] >= self.options['maxiter']:
             status = -1
         if 'gtol' in options and options['gtol'] != None and 'grad_norm' in data:
             if data['grad_norm'] < options['gtol']:
                 status = 1
+        if 'rgtol' in options and options['rgtol'] != None and 'grad_norm' in data and 'initial_grad_norm' in data:
+            if data['grad_norm'] < options['rgtol'] * data['initial_grad_norm']:
+                status = 1
         if 'jtol' in options and options['jtol'] != None and 'delta_J' in data:
             if data['delta_J'] < options['jtol']:
                 status = 2
+        if 'rjtol' in options and options['rjtol'] != None and 'delta_J' in data and 'initial_J' in data:
+            if data['delta_J'] < options['rjtol'] * data['initial_J']:
+                status = 2
         # TODO: implement more tests
-        self.data['status'] = status
+        data['status'] = status
         return status
 
     @property

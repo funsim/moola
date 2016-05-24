@@ -1,8 +1,12 @@
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
-from ufl.form import Form
-import dolfin
+import sys
+if 'backend' not in sys.modules:
+    import dolfin
+    sys.modules['backend'] = dolfin
+backend = sys.modules['backend']
+
 
 class IdentityMap(object):
 
@@ -13,55 +17,75 @@ class IdentityMap(object):
     def dual_map(self, x):
         return x.copy()
 
+
 class RieszMap(object):
 
-    def __init__(self, V, inner_product="L2", map_operator=None, inverse = "default"):
+    def __init__(self, V, inner_product="L2", map_operator=None, inverse="default"):
         self.V = V
 
         if inner_product is not "custom":
-            u = dolfin.TrialFunction(V)
-            v = dolfin.TestFunction(V)
+            u = backend.TrialFunction(V)
+            v = backend.TestFunction(V)
 
-            default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dx,
-                             "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx,
-                             "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u), dolfin.grad(v)))*dolfin.dx,
-                            }
+            default_forms = {"L2":   backend.inner(u, v)*backend.dx,
+                             "H0_1": backend.inner(backend.grad(u), backend.grad(v))*backend.dx,
+                             "H1":  (backend.inner(u, v) + backend.inner(backend.grad(u), backend.grad(v)))*backend.dx,
+                             }
 
             form = default_forms[inner_product]
-            map_operator = dolfin.assemble(form)
+            map_operator = backend.assemble(form)
         self.map_operator = map_operator
-        if inverse in ("default", "lu"):
-            self.map_solver = dolfin.LUSolver(self.map_operator)
-            self.map_solver.parameters["reuse_factorization"] = True
+        if backend.__name__ == "firedrake":
+            solver_parameters = {"ksp_type": "preonly"}
+            if isinstance(inverse, backend.Matrix):
+                solver_parameters["pc_type"] = "mat"
+                self.map_solver = backend.LinearSolver(
+                    self.map_operator, inverse,
+                    solver_parameters=solver_parameters)
+            elif isinstance(inverse, str):
+                if inverse == "default":
+                    inverse == "lu"
+                if inverse == "amg":
+                    inverse == "hypre"
 
-        elif inverse == "jacobi":
-            self.map_solver = dolfin.PETScKrylovSolver()
-            self.map_solver.set_operator(self.map_operator)
-            self.map_solver.ksp().setType("preonly")
-            self.map_solver.ksp().getPC().setType("jacobi")
-
-        elif inverse == "sor":
-            self.map_solver = dolfin.PETScKrylovSolver()
-            self.map_solver.set_operator(self.map_operator)
-            self.map_solver.ksp().setType("preonly")
-            self.map_solver.ksp().getPC().setType("sor")
-
-        elif inverse == "amg":
-            self.map_solver = dolfin.PETScKrylovSolver()
-            self.map_solver.set_operator(self.map_operator)
-            self.map_solver.ksp().setType("preonly")
-            self.map_solver.ksp().getPC().setType("hypre")
-            
-        elif isinstance(inverse, dolfin.GenericMatrix):
-            self.map_solver = dolfin.PETScKrylovSolver()
-            self.map_solver.set_operators(self.map_operator, inverse)
-            self.map_solver.ksp().setType("preonly")
-            self.map_solver.ksp().getPC().setType("mat")
-            
-            
+                solver_parameters["pc_type"] = inverse
+                self.map_solver = backend.LinearSolver(
+                    self.map_operator,
+                    solver_parameters=solver_parameters)
+            else:
+                raise NotImplementedError(
+                    "Don't know how to deal with inverse %s" % inverse)
         else:
-            self.map_solver = inverse
-        self.solver_type = inverse
+            if inverse in ("default", "lu"):
+                self.map_solver = backend.LUSolver(self.map_operator)
+                self.map_solver.parameters["reuse_factorization"] = True
+
+            elif inverse == "jacobi":
+                self.map_solver = backend.PETScKrylovSolver()
+                self.map_solver.set_operator(self.map_operator)
+                self.map_solver.ksp().setType("preonly")
+                self.map_solver.ksp().getPC().setType("jacobi")
+
+            elif inverse == "sor":
+                self.map_solver = backend.PETScKrylovSolver()
+                self.map_solver.set_operator(self.map_operator)
+                self.map_solver.ksp().setType("preonly")
+                self.map_solver.ksp().getPC().setType("sor")
+
+            elif inverse == "amg":
+                self.map_solver = backend.PETScKrylovSolver()
+                self.map_solver.set_operator(self.map_operator)
+                self.map_solver.ksp().setType("preonly")
+                self.map_solver.ksp().getPC().setType("hypre")
+            elif isinstance(inverse, backend.GenericMatrix):
+                self.map_solver = backend.PETScKrylovSolver()
+                self.map_solver.set_operators(self.map_operator, inverse)
+                self.map_solver.ksp().setType("preonly")
+                self.map_solver.ksp().getPC().setType("mat")
+            else:
+                self.map_solver = inverse
+                self.solver_type = inverse
+
     def primal_map(self, x, b):
         self.map_solver.solve(x, b)
 
@@ -76,7 +100,7 @@ class DolfinVector(Vector):
         ''' Wraps the Dolfin object `data` in a moola.DolfinVector object. '''
 
         if riesz_map is None:
-            if inner_product=="l2":
+            if inner_product == "l2":
                 riesz_map = IdentityMap()
             else:
                 fn_space = data.function_space()
@@ -142,16 +166,15 @@ class DolfinVector(Vector):
 class DolfinPrimalVector(DolfinVector):
     """ A class for representing primal vectors. """
 
-
     def dual(self):
         """ Returns the dual representation. """
 
         events.increment("Primal -> dual map")
-        if isinstance(self.data, dolfin.Function):
+        if isinstance(self.data, backend.Function):
             V = self.data.function_space()
 
             dual_vec = self.riesz_map.dual_map(self.data.vector())
-            dual = dolfin.Function(V, dual_vec)
+            dual = backend.Function(V, dual_vec)
 
             return DolfinDualVector(dual, riesz_map=self.riesz_map)
         else:
@@ -184,10 +207,10 @@ class DolfinDualVector(DolfinVector):
         """ Returns the primal representation. """
         events.increment("Dual -> primal map")
 
-        if isinstance(self.data, dolfin.Function):
+        if isinstance(self.data, backend.Function):
             V = self.data.function_space()
 
-            dual = dolfin.Function(V)
+            dual = backend.Function(V)
             self.riesz_map.primal_map(dual.vector(), self.data.vector())
 
             return DolfinPrimalVector(dual, riesz_map=self.riesz_map)

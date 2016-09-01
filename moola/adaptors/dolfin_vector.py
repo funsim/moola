@@ -22,13 +22,24 @@ class RieszMap(object):
             u = dolfin.TrialFunction(V)
             v = dolfin.TestFunction(V)
 
-            default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dx,
-                             "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx,
-                             "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u), dolfin.grad(v)))*dolfin.dx,
-                            }
+            if isinstance(V, dolfin.cpp.MultiMeshFunctionSpace):
+                default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dX,
+                                 "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dX,
+                                 "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u),
+                                                                           dolfin.grad(v)))*dolfin.dX,
+                }
+            else:
+                default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dx,
+                                 "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dx,
+                                 "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u),
+                                                                           dolfin.grad(v)))*dolfin.dx,
+                }
 
             form = default_forms[inner_product]
-            map_operator = dolfin.assemble(form)
+            if hasattr(form.arguments()[0], "_V_multi"):
+                map_operator = dolfin.assemble_multimesh(form)
+            else:
+                map_operator = dolfin.assemble(form)
         self.map_operator = map_operator
         if inverse in ("default", "lu"):
             self.map_solver = dolfin.LUSolver(self.map_operator)
@@ -188,6 +199,13 @@ class DolfinDualVector(DolfinVector):
             V = self.data.function_space()
 
             dual = dolfin.Function(V)
+            self.riesz_map.primal_map(dual.vector(), self.data.vector())
+
+            return DolfinPrimalVector(dual, riesz_map=self.riesz_map)
+        elif isinstance(self.data, dolfin.MultiMeshFunction):
+            V = self.data.function_space()
+
+            dual = dolfin.MultiMeshFunction(V)
             self.riesz_map.primal_map(dual.vector(), self.data.vector())
 
             return DolfinPrimalVector(dual, riesz_map=self.riesz_map)

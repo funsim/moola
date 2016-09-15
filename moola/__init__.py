@@ -1,8 +1,8 @@
 """
-The Moola optimization module 
+The Moola optimization module
 """
 
-__version__ = '0.1.3'
+__version__ = '0.1.5'
 __author__  = 'Simon Funke'
 __credits__ = ['Simon Funke']
 __license__ = 'LGPL-3'

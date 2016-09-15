@@ -2,7 +2,6 @@ from dolfin import *
 from dolfin_adjoint import *
 import pytest
 import moola
-from mshr import Rectangle
 
 
 dolfin.set_log_level(ERROR)
@@ -26,12 +25,18 @@ def randomly_refine(initial_mesh, ratio_to_refine= .3):
     return refine(initial_mesh, cell_markers = cf)
 
 
+try:
+    import mshr
+    moola_problem_params=[("structured mesh", 16), ("nonstructured mesh", 3)]
+except ImportError:
+    print "Mshr not found... skipping unstructured tests"
+    moola_problem_params=[("structured mesh", 16)]
 
-@pytest.fixture(params=[("structured mesh", 16), ("nonstructured mesh", 3)])
+@pytest.fixture(params=moola_problem_params)
 def moola_problem(request):
     if request.param[0] == "structured mesh":
         N = request.param[1]
-        mesh = UnitSquareMesh(N,N)
+        mesh = UnitSquareMesh(N, N)
     if request.param[0] == "nonstructured mesh":
         number_of_refinements = request.param[1]
         mesh = Mesh(Rectangle(0,0,1,1), 10)
@@ -65,7 +70,8 @@ def moola_problem(request):
 
     x_init = moola.DolfinPrimalVector(m)
     options = {'jtol': None, 'gtol': None, 'display': 3, 'maxiter' : 100,}
-    return rf.moola_problem(), x_init, options
+
+    return MoolaOptimizationProblem(rf), x_init, options
 
 @pytest.mark.parametrize("bfgs_options,bfgs_expected",
                          [ ({"gtol": 1e-4, 'mem_lim':30}, [11]),

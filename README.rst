@@ -15,3 +15,9 @@ Update pypi Moola package
 
 - Increase the version number on setup.py and moola/__init__.py
 - Run `python setup.py register bdist_egg upload`  
+
+
+License
+_______
+
+Moola is freely available under the GNU LGPL, version 3.

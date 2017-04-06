@@ -55,8 +55,9 @@ class ArmijoLineSearch(LineSearch):
         ''' Performs the line search on the function phi. 
 
             phi must be a function [0, oo] -> R.
-            phi_dphi must evaluate phi and its derivative, and 
-            must be a function [0, oo] -> (R, R).
+            phi_dphi is ignored (you can set it to None).
+            phi_dphi0 is a tuple containing the functional value and 
+            directional derivative at step=0.
 
             The return value is a step that satisfies the Armijo condition. 
         '''

@@ -1,7 +1,8 @@
 from .line_search import LineSearch
 
 class ArmijoLineSearch(LineSearch):
-    def __init__(self, ftol = 1e-4, start_stp = 1.0, stpmin = 1e-10, adaptive_stp=True):
+    def __init__(self, ftol = 1e-4, start_stp = 1.0, stpmin = 1e-10, stpmax=10000,
+                 adaptive_stp=True):
         '''
         This class implements a line search algorithm whose steps 
         satisfy the Armijo condition, i.e. they satisfies a 
@@ -21,6 +22,7 @@ class ArmijoLineSearch(LineSearch):
            ftol         | a nonnegative tolerance for the sufficient decrease condition.
            start_stp    | a guess for an initial step size. 
            stpmin       | a nonnegative lower bound for the step.
+           stpmax       | a nonnegative upper bound for the step. 
            adaptive_stp | dis/enables the adaptive step size algorithm.
 
         Returns:
@@ -34,11 +36,14 @@ class ArmijoLineSearch(LineSearch):
             raise ValueError("start_stp must be > 0")
         if stpmin <= 0:
             raise ValueError("stpmin must be > 0")
-
+        if stpmax <=0 or stpmax <= stpmin:
+            raise ValueError("stpmax must be > 0 and > stpmin")
+        
         self.ftol         = ftol 
         self.start_stp    = start_stp
         self.stpmin       = stpmin
         self.adaptive_stp = adaptive_stp
+        self.stpmax       = stpmax
 
     def _test(self, f, g, f0, stp):
         ''' Tests if the Armijo condition is satisfied '''
@@ -48,7 +53,7 @@ class ArmijoLineSearch(LineSearch):
         ''' Adapts the starting step according '''
         if it < 2:
             self.start_stp *= 2
-        if it > 4:
+        if it >=2:
             self.start_stp /= 2
 
     def search(self, phi, phi_dphi, phi_dphi0):

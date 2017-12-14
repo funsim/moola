@@ -3,7 +3,7 @@ class Solution(dict):
 
     def __str__(self):
         s = ""
-        for k, v in self.items():
+        for k, v in list(self.items()):
             s += "%s:\t\t%s\n" % (k, v)
         return s
 

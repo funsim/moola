@@ -1,4 +1,4 @@
-from line_search import LineSearch
+from .line_search import LineSearch
 
 class FixedLineSearch(LineSearch):
     def __init__(self, start_stp = 1.0):

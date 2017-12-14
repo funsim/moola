@@ -1,4 +1,4 @@
-from optimisation_algorithm import *
+from .optimisation_algorithm import *
 from math import sqrt
 from IPython import embed
 class TrustRegionNewtonCG(OptimisationAlgorithm):
@@ -70,7 +70,7 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         if verify:
             eps = 1e-8
             if abs((z+taup*d).norm()-D)/D > eps or abs((z+taum*d).norm()-D)/D > eps:
-                raise ArithmeticError, "Tau could not be computed accurately due to numerical errors."
+                raise ArithmeticError("Tau could not be computed accurately due to numerical errors.")
 
         return taup, taum
 
@@ -85,12 +85,12 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
         eps = min(0.5, sqrt(rnorm))*rnorm  # Stopping criteria for CG
 
         if rnorm < eps:
-            print "CG solver converged"
+            print("CG solver converged")
             return z
 
         cg_iter = 0
         while True:
-            print "CG iteration %s" % cg_iter
+            print("CG iteration %s" % cg_iter)
             cg_iter += 1
 
             Hd = obj.hessian(x)(d)
@@ -98,7 +98,7 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
 
             # Curvatur test 
             if curv <= 0:
-                print "curv <= 0.0"
+                print("curv <= 0.0")
                 taup, taum = self.get_tau(obj, z, d, D)
                 pp = z + taup*d
                 pm = z + taum*d
@@ -112,11 +112,11 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
             z_old = z.copy()
             z.axpy(alpha, d)
             znorm = z.norm()
-            print "|z_%i| = %f" % (cg_iter, znorm)
+            print("|z_%i| = %f" % (cg_iter, znorm))
 
             # Trust region boundary test
             if znorm >= D:
-                print "|z| >= Delta"
+                print("|z| >= Delta")
                 tau = self.get_tau(obj, z_old, d, D)[0]
                 assert tau >= 0
                 return z_old + tau*d, True
@@ -127,7 +127,7 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
 
             # CG convergence test
             if rnorm < eps:
-                print "CG solver converged"
+                print("CG solver converged")
                 return z, False
 
             beta = rtr / rtr_old
@@ -137,9 +137,9 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
     def solve(self):
         ''' Solves the optimisation problem with the trust region Newton-CG method. 
          '''
-        print self
+        print(self)
             
-        print "Doing another iteration"
+        print("Doing another iteration")
         obj = self.problem.obj
         i = 0
         Dk = self.options['tr_D0']
@@ -165,17 +165,17 @@ class TrustRegionNewtonCG(OptimisationAlgorithm):
 
             if rhok < 1./4:
                 Dk *= 1./4
-                print "Decreasing trust region radius to %f." % Dk
+                print("Decreasing trust region radius to %f." % Dk)
 
             elif rhok > 3./4 and is_cauchy_point:
                 Dk = min(2*Dk, self.options['tr_Dmax'])
-                print "Increasing trust region radius to %f." % Dk
+                print("Increasing trust region radius to %f." % Dk)
 
             if rhok > self.options['eta']:
                 xk.axpy(1., pk)
-                print "Trust region step accepted."
+                print("Trust region step accepted.")
             else:
-                print "Rejecting step. Reason: trust region step did not reduce objective."
+                print("Rejecting step. Reason: trust region step did not reduce objective.")
 
             i += 1
             

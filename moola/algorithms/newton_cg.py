@@ -1,5 +1,5 @@
-from optimisation_algorithm import *
-from bfgs import LimitedMemoryInverseHessian, LinearOperator
+from .optimisation_algorithm import *
+from .bfgs import LimitedMemoryInverseHessian, LinearOperator
 from numpy import sqrt
 from IPython import embed
 
@@ -111,7 +111,7 @@ class NewtonCG(OptimisationAlgorithm):
             cg_iter  = 0
             cg_break = 0
             while cg_iter < options['ncg_maxiter'] and rBr >= cg_tol:
-                print 'TEST:', rBr, cg_tol
+                print('TEST:', rBr, cg_tol)
                 if False: #i < options['initial_bfgs_iterations']:
                     d = Br
                     break

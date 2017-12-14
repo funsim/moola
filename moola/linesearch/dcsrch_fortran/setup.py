@@ -11,7 +11,7 @@ def configuration(parent_package='',top_path=None):
     # Get info from site.cfg
     blas_info = get_info('blas_opt',0)
     if not blas_info:
-        print 'No blas info found'
+        print('No blas info found')
 
     libcsrch_src = ['dcsrch.f', 'dcstep.f']
     pycsrch_src = ['_pycsrch.c']

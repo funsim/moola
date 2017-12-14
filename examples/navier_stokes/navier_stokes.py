@@ -73,9 +73,9 @@ if solver_type == "scipy":
 
 f.assign(m_opt)
 solve(F == 0, s, bcs=bcu+bcp)
-print "Functional value at optimizier: ", assemble(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx)
+print("Functional value at optimizier: ", assemble(inner(grad(u), grad(u))*dx + alpha*inner(f,f)*dx))
 
 plot(m_opt, title="Optimal control")
 plot(u, title="Optimal velocity")
 interactive()
-print moola.events
+print(moola.events)

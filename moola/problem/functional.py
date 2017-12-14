@@ -3,7 +3,7 @@ class Functional(object):
     def __call__(self, x):
         ''' Evaluates the object functional at x. '''
 
-        raise NotImplementedError, "Functional.__call__ is not implemented." 
+        raise NotImplementedError("Functional.__call__ is not implemented.") 
 
     def gradient(self, x):
         ''' Evaluates the gradient of the object functional at x. 
@@ -16,9 +16,9 @@ class Functional(object):
     def derivative(self, x):
         ''' Returns the derivative operator at x. '''
 
-        raise NotImplementedError, "Functional.derivative is not implemented." 
+        raise NotImplementedError("Functional.derivative is not implemented.") 
 
 
     def Hessian(self, x):
         ''' Returns the Hessian of the object functional at x as a function. '''
-        raise NotImplementedError, "Functional.Hessian is not implemented." 
+        raise NotImplementedError("Functional.Hessian is not implemented.") 

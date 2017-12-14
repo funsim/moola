@@ -119,7 +119,7 @@ def test_HybridCG(hybrid_options, hybrid_expected, moola_problem):
     options.update(hybrid_options)
     solver = HybridCG(problem, x_init, options = options)
     sol = solver.solve()
-    print sol['iteration']
+    print(sol['iteration'])
     if options['gtol'] is not None:
         assert sol['grad_norm'] < options['gtol']
     if options['jtol'] is not None:

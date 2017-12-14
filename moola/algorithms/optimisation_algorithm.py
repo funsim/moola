@@ -11,11 +11,11 @@ class OptimisationAlgorithm(object):
     '''
     def __init__(self, tol, options={}, **args):
         ''' Initialises the optmization algorithm. '''
-        raise NotImplementedError, 'OptimisationAlgorithm.__init__ is not implemented'
+        raise NotImplementedError('OptimisationAlgorithm.__init__ is not implemented')
 
     def __str__(self):
         ''' Prints out a description of the algorithm settings. '''
-        raise NotImplementedError, 'OptimisationAlgorithm.__str__ is not implemented'
+        raise NotImplementedError('OptimisationAlgorithm.__str__ is not implemented')
 
 
     @classmethod
@@ -33,7 +33,7 @@ class OptimisationAlgorithm(object):
             options = self.options
         else:
             options = self.default_options()
-        for key, val in user_options.iteritems():
+        for key, val in user_options.items():
             if key not in options:
                 raise KeyError("'{}' not a valid setting for {}".format(key, self.__class__.__name__))
             # TODO: check also that the provided value is admissible.
@@ -56,7 +56,7 @@ class OptimisationAlgorithm(object):
          10: debug
         '''
         if level <= self.options['display']:
-            print text
+            print(text)
 
     def do_linesearch(self, obj, m, s):
         ''' Performs a linesearch on obj starting from m in direction s. '''
@@ -140,7 +140,7 @@ class OptimisationAlgorithm(object):
             Return value:
               * solution: The solution to the optimisation problem
         '''
-        raise NotImplementedError, 'OptimisationAlgorithm.solve is not implemented'
+        raise NotImplementedError('OptimisationAlgorithm.solve is not implemented')
 
     def update(self, d=None, **args):
         if not hasattr(self, 'data'):
@@ -171,7 +171,7 @@ def get_line_search_method(line_search, line_search_options):
     elif line_search == "fixed":
         ls = FixedLineSearch(**line_search_options)
     else:
-        raise ValueError, "Unknown line search specified. Valid values are 'armijo', 'strong_wolfe', 'approximate_wolfe' and 'fixed'."
+        raise ValueError("Unknown line search specified. Valid values are 'armijo', 'strong_wolfe', 'approximate_wolfe' and 'fixed'.")
 
     return ls
 

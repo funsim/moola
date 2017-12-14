@@ -104,15 +104,15 @@ class StrongWolfeLineSearch:
             self.curvature = True
 
         if info == 0:
-            print ' linesearch returned; incorrect input values:'
-            print '    stpmin = ', self.stpmin
-            print '    stpmax = ', self.stpmax
-            print '    ftol   = ', self.ftol
-            print '    gtol   = ', self.gtol
-            print '    xtol   = ', self.xtol
-            print '    n      = ', self.n
-            print '    stp    = ', self.stp
-            print '    maxfev = ', self.maxfev
+            print(' linesearch returned; incorrect input values:')
+            print('    stpmin = ', self.stpmin)
+            print('    stpmax = ', self.stpmax)
+            print('    ftol   = ', self.ftol)
+            print('    gtol   = ', self.gtol)
+            print('    xtol   = ', self.xtol)
+            print('    n      = ', self.n)
+            print('    stp    = ', self.stp)
+            print('    maxfev = ', self.maxfev)
         self.info = info
         return
 
@@ -135,11 +135,11 @@ if __name__ == '__main__':
                                   lambda z: nlp.obj(z),
                                   lambda z: nlp.grad(z),
                                   stp = 1.0/sqrt(numpy.dot(g,g)))
-    print ' Before search'
-    print '   f = ', f
-    print '   stpmax = ', SWLS.stpmax
+    print(' Before search')
+    print('   f = ', f)
+    print('   stpmax = ', SWLS.stpmax)
     SWLS.search()
-    print ' After search'
-    print '   f = ', SWLS.f
-    print '   step length = ', SWLS.stp
+    print(' After search')
+    print('   f = ', SWLS.f)
+    print('   step length = ', SWLS.stp)
     nlp.close()

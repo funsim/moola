@@ -1,5 +1,5 @@
-from optimisation_algorithm import *
-from bfgs import LimitedMemoryInverseHessian, LinearOperator
+from .optimisation_algorithm import *
+from .bfgs import LimitedMemoryInverseHessian, LinearOperator
 from numpy import sqrt
 from IPython import embed
 

@@ -15,5 +15,5 @@ class LineSearch:
 
             The return value must be the computed step size.
         '''
-        raise NotImplementedError, "Must be overloaded."
+        raise NotImplementedError("Must be overloaded.")
 

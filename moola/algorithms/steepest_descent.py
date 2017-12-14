@@ -1,4 +1,4 @@
-from optimisation_algorithm import *
+from .optimisation_algorithm import *
 
 class SteepestDescent(OptimisationAlgorithm):
     """
@@ -77,7 +77,7 @@ class SteepestDescent(OptimisationAlgorithm):
             self.update({'grad_norm' : grad.norm()})
             self.display(self.iter_status, 2)
 
-            if self.hooks.has_key("before_iteration"):
+            if "before_iteration" in self.hooks:
                 self.hooks["before_iteration"](j, grad)
 
             # Check for convergence
@@ -90,7 +90,7 @@ class SteepestDescent(OptimisationAlgorithm):
             # Update the iterate counter
             it += 1
 
-            if self.hooks.has_key("after_iteration"):
+            if "after_iteration" in self.hooks:
                 self.hooks["after_iteration"](j, grad)
 
             # Print the reason for convergence

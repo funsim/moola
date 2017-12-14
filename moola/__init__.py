@@ -9,10 +9,10 @@ __license__ = 'LGPL-3'
 __maintainer__ = 'Simon Funke'
 __email__ = 's.funke09@imperial.ac.uk'
 
-import linalg
-import problem
-import linesearch
-import algorithms
-import misc
+from . import linalg
+from . import problem
+from . import linesearch
+from . import algorithms
+from . import misc
 
-from ui import *
+from .ui import *

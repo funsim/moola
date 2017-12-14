@@ -1,5 +1,5 @@
-from line_search import LineSearch
-from dcsrch import dcsrch
+from .line_search import LineSearch
+from .dcsrch import dcsrch
 from numpy import zeros
 from logging import error
 
@@ -79,7 +79,7 @@ class StrongWolfeLineSearch(LineSearch):
             self.stpmin = 0.
         if self.stpmax == "automatic":
             stpmax = max(4*min(self.start_stp, 1.0), 0.1*f/(-g*self.ftol))
-            print "-g", -g
+            print("-g", -g)
         else:
             stpmax = self.stpmax
 
@@ -94,12 +94,12 @@ class StrongWolfeLineSearch(LineSearch):
                 break
 
         if "Error" in task:
-            raise RuntimeError, task
+            raise RuntimeError(task)
         elif "Warning" in task:
             if not self.ignore_warnings:
-                raise Warning, task
+                raise Warning(task)
             else:
-                print "Warning in line search: %s." % task.replace("Warning: ", "")
+                print("Warning in line search: %s." % task.replace("Warning: ", ""))
                 return stp
         else:
             assert task=="Convergence" or ("Warning" in task and self.ignore_warnings)
@@ -108,7 +108,7 @@ class StrongWolfeLineSearch(LineSearch):
                 # Recompute the step with the Fortran implementation and compare
                 stp_fort = self.search_fortran(phi, phi_dphi, stpmax)
                 if stp_fort is not None and stp_fort != stp:
-                    raise RuntimeError, "The line search verification failed!"
+                    raise RuntimeError("The line search verification failed!")
 
             return stp
 

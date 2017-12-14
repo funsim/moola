@@ -140,7 +140,7 @@ def dcsrch(stp, f, g, ftol, gtol, xtol, task, stpmin, stpmax, isave, dsave):
      Simon W. Funke
     """
 
-    from dcstep import dcstep
+    from .dcstep import dcstep
 
     xtrapl=1.1
     xtrapu=4.0

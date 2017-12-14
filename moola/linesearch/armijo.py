@@ -1,4 +1,4 @@
-from line_search import LineSearch
+from .line_search import LineSearch
 
 class ArmijoLineSearch(LineSearch):
     def __init__(self, ftol = 1e-4, start_stp = 1.0, stpmin = 1e-10, adaptive_stp=True):
@@ -29,11 +29,11 @@ class ArmijoLineSearch(LineSearch):
         '''
 
         if ftol <= 0:
-            raise ValueError, "ftol must be > 0"
+            raise ValueError("ftol must be > 0")
         if start_stp <= 0:
-            raise ValueError, "start_stp must be > 0"
+            raise ValueError("start_stp must be > 0")
         if stpmin <= 0:
-            raise ValueError, "stpmin must be > 0"
+            raise ValueError("stpmin must be > 0")
 
         self.ftol         = ftol 
         self.start_stp    = start_stp
@@ -65,7 +65,7 @@ class ArmijoLineSearch(LineSearch):
         stp = self.start_stp
         finit, ginit = phi_dphi0
         if ginit >= 0:
-            raise Warning, "The gradient is not a descent direction"
+            raise Warning("The gradient is not a descent direction")
         f = finit 
         
         it = 0
@@ -74,7 +74,7 @@ class ArmijoLineSearch(LineSearch):
                 self._adapt(it)
                 return stp
             elif stp < self.stpmin:
-                raise Warning, "The step size dropped below the minimum step size."
+                raise Warning("The step size dropped below the minimum step size.")
 
             stp /= 2.0
             it += 1

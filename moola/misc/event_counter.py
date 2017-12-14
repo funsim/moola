@@ -8,13 +8,13 @@ class EventCounter(dict):
             self[event_name] = 1
 
     def __str__(self):
-        print ""
-        print "="*20 + "Moola Events" + "="*20
-        print ""
+        print("")
+        print("="*20 + "Moola Events" + "="*20)
+        print("")
         s = []
 
         row_format ="{:>25}" * 2
-        for k, v in self.iteritems():
+        for k, v in self.items():
             s.append(row_format.format(k, v))
 
         return "\n".join(s)

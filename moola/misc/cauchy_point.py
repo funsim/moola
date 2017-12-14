@@ -1,6 +1,6 @@
 ''' Computes the Cauchy point as descirbed in Wright 1999, section 16.6 '''
 import numpy as np
-from infinity import inf
+from .infinity import inf
 
 def P(x, l, u):
     '''

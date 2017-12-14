@@ -24,8 +24,8 @@ def compute_errors(u, f, g):
     control_error = errornorm(f_analytic, f) + errornorm(g_analytic, g)
     state_error = errornorm(u_analytic, u)
 
-    print "Error in state: {}.".format(state_error)
-    print "Error in control: {}.".format(control_error)
+    print("Error in state: {}.".format(state_error))
+    print("Error in control: {}.".format(control_error))
 
     return control_error, state_error
 
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     sol = solver.solve()
     m_opt = sol['Optimizer'].data
 
-    print moola.events
+    print(moola.events)

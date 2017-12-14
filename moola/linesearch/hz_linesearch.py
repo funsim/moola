@@ -65,10 +65,10 @@ def alphatry(alpha, d, x, s, xtmp, gtmp, lsr, psi1=0.2, psi2=2, psi3=0.1, iterfi
 
     a = (phitest - alphatest * dphi0 - phi0) / alphatest**2 # quadratic fit
     if display:
-        print("quadfit: alphatest = ", alphatest,
+        print(("quadfit: alphatest = ", alphatest,
                 ", phi0 = ", phi0,
                 ", phitest = ", phitest,
-                ", quadcoef = ", a)
+                ", quadcoef = ", a))
 
     mayterminate = False
     if a > 0 and phitest <= phi0:
@@ -81,8 +81,8 @@ def alphatry(alpha, d, x, s, xtmp, gtmp, lsr, psi1=0.2, psi2=2, psi3=0.1, iterfi
             alpha = alphamax
             mayterminate = False
         if display:
-            print("alpha guess (quadratic): ", alpha,
-                    ",(mayterminate = ", mayterminate, ")")
+            print(("alpha guess (quadratic): ", alpha,
+                    ",(mayterminate = ", mayterminate, ")"))
     else:
         if phitest > phi0:
             alpha = alphatest
@@ -91,7 +91,7 @@ def alphatry(alpha, d, x, s, xtmp, gtmp, lsr, psi1=0.2, psi2=2, psi3=0.1, iterfi
 
     alpha = min(alphamax, alpha)
     if display:
-        print("alpha guess (expand): ", alpha)
+        print(("alpha guess (expand): ", alpha))
     return alpha, mayterminate
 
 
@@ -121,7 +121,7 @@ def hz_linesearch(df, c, mayterminate, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, a
     # satisfies the Wolfe conditions
     if mayterminate and satisfies_wolfe(c, phic, dphic, phi0, dphi0, philim, delta, sigma):
         if display:
-            print("Wolfe condition satisfied on point alpha = ", c)
+            print(("Wolfe condition satisfied on point alpha = ", c))
         return c
 
     # Initial bracketing step (HZ, stages B0-B3)
@@ -133,11 +133,11 @@ def hz_linesearch(df, c, mayterminate, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, a
     cold = -1
     while not isbracketed and iter < linesearchmax:
         if display:
-            print("bracketing: ia = ", ia,
+            print(("bracketing: ia = ", ia,
                     ", ib = ", ib,
                     ", c = ", c,
                     ", phic = ", phic,
-                    ", dphic = ", dphic)
+                    ", dphic = ", dphic))
         if dphic >= 0:
             # We've reached the upward slope, so we have b; examine
             # previous values to find a
@@ -154,7 +154,7 @@ def hz_linesearch(df, c, mayterminate, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, a
             ib = len(lsr)-1
             ia = ib - 1
             if c != lsr[ib].alpha or lsr[ib].slope >= 0:
-                raise ValueError, ("c = ", c, ", lsr = ", lsr)
+                raise ValueError("c = ", c, ", lsr = ", lsr)
 
             ia, ib = bisect(df, lsr, ia, ib, philim, display)
             isbracketed = True
@@ -179,10 +179,10 @@ def hz_linesearch(df, c, mayterminate, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, a
                 # mistakes in the user's function.
                 if iterfinite >= iterfinitemax:
                     print("Warning: failed to expand interval to bracket with finite values. If this happens frequently, check your function and gradient.")
-                    print("c = ", c,
+                    print(("c = ", c,
                             ", alphamax = ", alphamax,
                             ", phic = ", phic,
-                            ", dphic = ", dphic)
+                            ", dphic = ", dphic))
                 return c
             lsr.append(LSR(phic, dphic, c))
         iter += 1
@@ -192,12 +192,12 @@ def hz_linesearch(df, c, mayterminate, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, a
         b = lsr[ib].alpha
         assert b > a
         if display:
-            print("linesearch: ia = ", ia,
+            print(("linesearch: ia = ", ia,
                     ", ib = ", ib,
                     ", a = ", a,
                     ", b = ", b,
                     ", phi(a) = ", lsr[ia].value,
-                    ", phi(b) = ", lsr[ib].value)
+                    ", phi(b) = ", lsr[ib].value))
 
         if b - a <= eps(b):
             return a
@@ -255,7 +255,7 @@ def secant2(df, lsr, ia, ib, philim, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, dis
     assert dphib >= 0
     c = secant(a, b, dphia, dphib)
     if display:
-        print("secant2: a = ", a, ", b = ", b, ", c = ", c)
+        print(("secant2: a = ", a, ", b = ", b, ", c = ", c))
 
     assert not isnan(c)
     # phic = phi(tmpc, c) # Replace
@@ -271,7 +271,7 @@ def secant2(df, lsr, ia, ib, philim, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, dis
 
     iA, iB = update(df, lsr, ia, ib, ic, philim, display)
     if display:
-        print("secant2: iA = ", iA, ", iB = ", iB, ", ic = ", ic)
+        print(("secant2: iA = ", iA, ", iB = ", iB, ", ic = ", ic))
 
     a = lsr[iA].alpha
     b = lsr[iB].alpha
@@ -284,7 +284,7 @@ def secant2(df, lsr, ia, ib, philim, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, dis
         c = secant_(lsr, ia, iA)
     if a <= c <= b:
         if display:
-            print("secant2: second c = ", c)
+            print(("secant2: second c = ", c))
 
         phic, dphic = linefunc(df, c, calc_grad=True)
         assert not isnan(phic)
@@ -299,7 +299,7 @@ def secant2(df, lsr, ia, ib, philim, delta=DEFAULTDELTA, sigma=DEFAULTSIGMA, dis
         iA, iB = update(df, lsr, iA, iB, ic, philim, display)
 
     if display: 
-        print("secant2 output: a = ", lsr[iA].alpha, ", b = ", lsr[iB].alpha)
+        print(("secant2 output: a = ", lsr[iA].alpha, ", b = ", lsr[iB].alpha))
 
     return False, iA, iB
 
@@ -320,13 +320,13 @@ def update(df, lsr, ia, ib, ic, philim, display=False):
     phic = lsr[ic].value
     dphic = lsr[ic].slope
     if display:
-        print("update: ia = ", ia,
+        print(("update: ia = ", ia,
                 ", a = ", a,
                 ", ib = ", ib,
                 ", b = ", b,
                 ", c = ", c,
                 ", phic = ", phic,
-                ", dphic = ", dphic)
+                ", dphic = ", dphic))
 
     if c < a or c > b:
         return ia, ib, 0, 0  # it's out of the bracketing interval
@@ -361,7 +361,7 @@ def bisect(df, lsr, ia, ib, philim, display=False):
 
     while b - a > eps(b):
         if display:
-            print("bisect: a = ", a, ", b = ", b, ", b - a = ", b - a)
+            print(("bisect: a = ", a, ", b = ", b, ", b - a = ", b - a))
 
         d = (a + b) / 2.
         phid, gphi = linefunc(df, d, calc_grad=True)

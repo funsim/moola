@@ -1,4 +1,4 @@
-from optimisation_algorithm import *
+from .optimisation_algorithm import *
 from numpy import sqrt
 
 class NonLinearCG(OptimisationAlgorithm):
@@ -50,7 +50,7 @@ class NonLinearCG(OptimisationAlgorithm):
 
     @classmethod
     def list_beta_rules(cls):
-        return _beta_rules.keys()
+        return list(_beta_rules.keys())
     
 
     def __str__(self):

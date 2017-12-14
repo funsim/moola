@@ -1,5 +1,5 @@
-from line_search import LineSearch
-from hz_linesearch import hz_linesearch
+from .line_search import LineSearch
+from .hz_linesearch import hz_linesearch
 
 class HagerZhangLineSearch(LineSearch):
     def __init__(self, ftol=1e-4, gtol=0.9, xtol=1e-1, start_stp=1.0, stpmax=float('Inf'), display=False):

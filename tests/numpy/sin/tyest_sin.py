@@ -29,7 +29,7 @@ def test():
     assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
     assert sol["iteration"] < 10
 
-    print '\n'
+    print('\n')
 
     # Solve the problem with the steepest descent from the NonlinearCG method
     options = {'jtol': 0, 'gtol': 1e-16, "beta_rule": "steepest_descent"}
@@ -38,7 +38,7 @@ def test():
     assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
     assert sol["iteration"] < 10
 
-    print '\n'
+    print('\n')
 
     # Solve the problem with the Fletcher-Reeves method
     options = {'jtol': 0, 'gtol': 1e-16, "beta_rule": "fletcher-reeves"}
@@ -54,7 +54,7 @@ def test():
     assert max(abs(sol["control"].data + 1./2*np.pi)) < 1e-9
     assert sol["iteration"] < 10
 
-    print '\n'
+    print('\n')
 
     # Solve the problem with the BFGS method
     options = {'jtol': 0, 'gtol': 1e-16, 'mem_lim':0}

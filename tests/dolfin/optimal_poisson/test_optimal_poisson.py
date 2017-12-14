@@ -19,7 +19,7 @@ def randomly_refine(initial_mesh, ratio_to_refine= .3):
     import numpy.random
     numpy.random.seed(0)
     cf = CellFunction('bool', initial_mesh)
-    for k in xrange(len(cf)):
+    for k in range(len(cf)):
         if numpy.random.rand() < ratio_to_refine:
             cf[k] = True
     return refine(initial_mesh, cell_markers = cf)
@@ -29,7 +29,7 @@ try:
     import mshr
     moola_problem_params=[("structured mesh", 16), ("nonstructured mesh", 3)]
 except ImportError:
-    print "Mshr not found... skipping unstructured tests"
+    print("Mshr not found... skipping unstructured tests")
     moola_problem_params=[("structured mesh", 16)]
 
 @pytest.fixture(params=moola_problem_params)
@@ -40,7 +40,7 @@ def moola_problem(request):
     if request.param[0] == "nonstructured mesh":
         number_of_refinements = request.param[1]
         mesh = Mesh(Rectangle(0,0,1,1), 10)
-        for k in xrange(number_of_refinements):
+        for k in range(number_of_refinements):
             mesh = randomly_refine(mesh)
     V = FunctionSpace(mesh, 'CG', 2)
     Q = FunctionSpace(mesh, "CG", 2)

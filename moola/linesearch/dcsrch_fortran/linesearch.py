@@ -40,7 +40,7 @@ class LineSearch:
         """
         # Must override
         if slope >= 0.0:
-            raise ValueError, "Direction must be a descent direction"
+            raise ValueError("Direction must be a descent direction")
             return None
         t = 1.0
         while not self._test(func, x, d, f = f, t = t, **kwargs):
@@ -100,7 +100,7 @@ class ArmijoLineSearch(LineSearch):
         if f is None:
             f = func(x)
         if slope >= 0.0:
-            raise ValueError, "Direction must be a descent direction"
+            raise ValueError("Direction must be a descent direction")
             return None
         t = 1.0
         while not self._test(func, x, d, slope, f = f, t = t, **kwargs):
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     xlist = [x[0]]
     ylist = [x[1]]
     iter = 0
-    print '%-d\t%-g\t%-g\t%-g\t%-g\t%-g\t%-g' % (iter, f, norm_infty(grad), x[0], x[1], t, slope)
+    print('%-d\t%-g\t%-g\t%-g\t%-g\t%-g\t%-g' % (iter, f, norm_infty(grad), x[0], x[1], t, slope))
     while norm_infty(grad) > 1.0e-5:
 
         iter += 1
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         grad = rosengrad(x)
         d = -grad
         slope = dot(grad, d)
-        print '%-d\t%-g\t%-g\t%-g\t%-g\t%-g\t%-g' % (iter, f, norm_infty(grad), x[0], x[1], t, slope)
+        print('%-d\t%-g\t%-g\t%-g\t%-g\t%-g\t%-g' % (iter, f, norm_infty(grad), x[0], x[1], t, slope))
 
     try:
         from pylab import *

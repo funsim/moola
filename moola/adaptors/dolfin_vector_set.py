@@ -1,4 +1,4 @@
-from dolfin_vector import DolfinVector, DolfinPrimalVector, DolfinDualVector
+from .dolfin_vector import DolfinVector, DolfinPrimalVector, DolfinDualVector
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
@@ -60,7 +60,7 @@ class DolfinVectorSet(Vector):
 
         for vec in vector_list:
             if not isinstance(vec, DolfinVector):
-                raise ValueError, "vector_list must be a list of DolfinVectors"
+                raise ValueError("vector_list must be a list of DolfinVectors")
         self.vector_list = zeros(len(vector_list), dtype = object)
         self.vector_list[:] = vector_list
         

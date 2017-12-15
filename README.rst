@@ -10,12 +10,10 @@ You need to have FEniCS_ and dolfin-adjoint_ installed to run the tests.
 .. _dolfin-adjoint: http://dolfin-adjoint.org
 
 
-Update pypi Moola package
--------------------------
+Installation
+------------
 
-- Increase the version number on setup.py and moola/__init__.py
-- Run `python setup.py register bdist_egg upload`  
-
+    pip install git+https://github.com/funsim/moola.git@master
 
 License
 _______

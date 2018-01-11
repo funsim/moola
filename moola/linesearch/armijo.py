@@ -55,6 +55,8 @@ class ArmijoLineSearch(LineSearch):
             self.start_stp *= 2
         if it >=2:
             self.start_stp /= 2
+        if self.start_stp >= self.stpmax:
+            self.start_stp /=4
 
     def search(self, phi, phi_dphi, phi_dphi0):
         ''' Performs the line search on the function phi. 

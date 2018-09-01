@@ -22,7 +22,7 @@ class RieszMap(object):
             u = dolfin.TrialFunction(V)
             v = dolfin.TestFunction(V)
 
-            if isinstance(V, dolfin.cpp.MultiMeshFunctionSpace):
+            if isinstance(V, dolfin.cpp.function.MultiMeshFunctionSpace):
                 default_forms = {"L2":   dolfin.inner(u, v)*dolfin.dX,
                                  "H0_1": dolfin.inner(dolfin.grad(u), dolfin.grad(v))*dolfin.dX,
                                  "H1":  (dolfin.inner(u, v) + dolfin.inner(dolfin.grad(u),
@@ -43,7 +43,6 @@ class RieszMap(object):
         self.map_operator = map_operator
         if inverse in ("default", "lu"):
             self.map_solver = dolfin.LUSolver(self.map_operator)
-            self.map_solver.parameters["reuse_factorization"] = True
 
         elif inverse == "jacobi":
             self.map_solver = dolfin.PETScKrylovSolver()

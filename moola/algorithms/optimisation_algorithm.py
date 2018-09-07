@@ -84,7 +84,7 @@ class OptimisationAlgorithm(object):
             return p, djs
 
         #get values at current point
-        phi_dphi0 = obj(m), obj.derivative(m).apply(s)
+        phi_dphi0 = phi_dphi(0)
 
         # Perform the line search
         alpha = self.linesearch.search(phi, phi_dphi, phi_dphi0)

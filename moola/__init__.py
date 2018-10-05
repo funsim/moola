@@ -2,7 +2,7 @@
 The Moola optimization module
 """
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 __author__  = 'Simon Funke'
 __credits__ = ['Simon Funke']
 __license__ = 'LGPL-3'

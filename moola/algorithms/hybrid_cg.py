@@ -1,7 +1,7 @@
 from .optimisation_algorithm import *
 from .bfgs import LimitedMemoryInverseHessian, LinearOperator
 from numpy import sqrt
-from IPython import embed
+
 
 def dual_to_primal(x):
     return x.primal()

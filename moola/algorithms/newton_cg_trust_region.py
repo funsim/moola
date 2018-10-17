@@ -1,6 +1,7 @@
-from .optimisation_algorithm import *
 from math import sqrt
-from IPython import embed
+from .optimisation_algorithm import *
+
+
 class TrustRegionNewtonCG(OptimisationAlgorithm):
     ''' 
     An implementation of the trust region NewtonCG method 

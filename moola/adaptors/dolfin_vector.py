@@ -1,8 +1,6 @@
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
-from ufl.form import Form
-import dolfin
 
 class IdentityMap(object):
 
@@ -17,6 +15,7 @@ class RieszMap(object):
 
     def __init__(self, V, inner_product="L2", map_operator=None, inverse = "default"):
         self.V = V
+        import dolfin
 
         if inner_product is not "custom":
             u = dolfin.TrialFunction(V)
@@ -61,14 +60,13 @@ class RieszMap(object):
             self.map_solver.set_operator(self.map_operator)
             self.map_solver.ksp().setType("preonly")
             self.map_solver.ksp().getPC().setType("hypre")
-            
+
         elif isinstance(inverse, dolfin.GenericMatrix):
             self.map_solver = dolfin.PETScKrylovSolver()
             self.map_solver.set_operators(self.map_operator, inverse)
             self.map_solver.ksp().setType("preonly")
             self.map_solver.ksp().getPC().setType("mat")
-            
-            
+
         else:
             self.map_solver = inverse
         self.solver_type = inverse
@@ -193,6 +191,7 @@ class DolfinDualVector(DolfinVector):
     def primal(self):
         """ Returns the primal representation. """
         events.increment("Dual -> primal map")
+        import dolfin
 
         if isinstance(self.data, dolfin.Function):
             V = self.data.function_space()

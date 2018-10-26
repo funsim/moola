@@ -9,6 +9,9 @@ setup(name='moola',
       author_email='simon@simula.no',
       url='https://github.com/funsim/moola',
       packages=find_packages(),
+      install_requires=[
+          'numpy',
+      ],
       classifiers=[
             'Programming Language :: Python',
             'Programming Language :: Python :: 2',

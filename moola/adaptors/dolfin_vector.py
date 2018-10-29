@@ -155,6 +155,7 @@ class DolfinPrimalVector(DolfinVector):
         """ Returns the dual representation. """
 
         events.increment("Primal -> dual map")
+        import dolfin
         if isinstance(self.data, dolfin.Function):
             V = self.data.function_space()
 

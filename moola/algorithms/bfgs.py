@@ -91,9 +91,9 @@ class BFGS(OptimisationAlgorithm):
          * Hinit: Initial approximation of the inverse Hessian.
          * options: A dictionary containing additional options for the steepest descent algorithm. Valid options are:
             - jtol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
-            - rjtol: Functional reduction stopping tolerance: |j - j_prev| < tol. Default: 1e-4.
-            - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol.
-            - rgtol: Relative version of the gradient stopping criterion.
+            - rjtol: Relative version of the functional reduction stopping criterion. Default: 1e-6.
+            - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol. Default: 1e-4.
+            - rgtol: Relative version of the gradient stopping criterion. Default: 1e-5.
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200.
             - disp: dis/enable outputs to screen during the optimisation. Default: True
             - line_search: defines the line search algorithm to use. Default: strong_wolfe

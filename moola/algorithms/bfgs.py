@@ -95,7 +95,7 @@ class BFGS(OptimisationAlgorithm):
             - gtol: Gradient norm stopping tolerance: ||grad j|| < gtol. Default: 1e-4.
             - rgtol: Relative version of the gradient stopping criterion. Default: 1e-5.
             - maxiter: Maximum number of iterations before the algorithm terminates. Default: 200.
-            - disp: dis/enable outputs to screen during the optimisation. Default: True
+            - display: dis/enable outputs to screen during the optimisation (higher number yields more output). Default: 2
             - line_search: defines the line search algorithm to use. Default: strong_wolfe
             - line_search_options: additional options for the line search algorithm. The specific options read the help
               for the line search algorithm.

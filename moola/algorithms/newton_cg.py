@@ -167,6 +167,9 @@ class NewtonCG(OptimisationAlgorithm):
 
             i += 1
 
+            if options['callback'] is not None:
+                options['callback'](J, r)
+
             # store current iteration variables
             self.update({'iteration' : i,
                          'control'   : x,

@@ -1,6 +1,7 @@
 from .dolfin_vector import DolfinPrimalVector, DolfinDualVector
 from .dolfin_vector_set import DolfinDualVectorSet
 from .numpy_vector import NumpyPrimalVector, NumpyDualVector
+from .firedrake_vector import FiredrakePrimalVector, FiredrakeDualVector
 
 
 def convert_to_moola_dual_vector(x, y):
@@ -9,6 +10,8 @@ def convert_to_moola_dual_vector(x, y):
     """
     if isinstance(y, DolfinPrimalVector):
         r = DolfinDualVector(x, riesz_map=y.riesz_map)
+    elif isinstance(y, FiredrakePrimalVector):
+        r = FiredrakeDualVector(x, riesz_map=y.riesz_map)
     elif isinstance(y, NumpyPrimalVector):
         r = NumpyDualVector(x)
     else:

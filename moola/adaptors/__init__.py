@@ -11,4 +11,6 @@ from .dolfin_vector_set import DolfinPrimalVectorSet
 from .dolfin_vector_set import DolfinDualVectorSet
 from .dolfin_vector_set import RieszMapSet
 
+from .firedrake_vector import FiredrakePrimalVector
+
 from .adaptor import convert_to_moola_dual_vector

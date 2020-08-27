@@ -23,12 +23,21 @@ class RieszMap(object):
         if inner_product not in default_forms:
             raise Exception("unsupported RieszMap inner product")
 
-        form = default_forms[inner_product]
-        self.map_operator = firedrake.assemble(form)
+        self.form = default_forms[inner_product]
+        self.map_operator = firedrake.assemble(self.form)
 
     def primal_map(self, x, b):
         import firedrake
         firedrake.solve(self.map_operator, x, b)
+
+    def dual_map(self, x):
+        # because we can't (that I know of) work with the assembled matrix,
+        # we just have to work with the form directly
+        def _f(v):
+            import firedrake
+            return firedrake.assemble(self.form(x, v, coefficients={}))
+
+        return _f
 
 class FiredrakeVector(Vector):
     def __init__(self, data, inner_product="L2", riesz_map=None):
@@ -57,7 +66,12 @@ class FiredrakeVector(Vector):
         self.data += a * x.data
 
 class FiredrakePrimalVector(FiredrakeVector):
-    pass
+    def inner(self, vec):
+        v = self.riesz_map.dual_map(self.data)
+        return v(vec.data)
+
+    def norm(self):
+        return sqrt(self.inner(self))
 
 class FiredrakeDualVector(FiredrakePrimalVector):
     def apply(self, primal):

@@ -119,7 +119,7 @@ class NonLinearCG(OptimisationAlgorithm):
             J, old_J = obj(x), J
             #update
             self.update(iteration = it, control = x, grad_norm = sqrt(grad_norm2),
-                        objective = J, delta_J = old_J - J)
+                        objective = J, delta_J = abs(old_J - J))
             self.record_progress()
 
         # Print the reason for convergence

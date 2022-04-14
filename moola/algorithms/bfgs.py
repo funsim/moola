@@ -205,7 +205,7 @@ class BFGS(OptimisationAlgorithm):
             self.update({'iteration' : it,
                          'control'   : xk,
                          'grad_norm' : dJ_xk.primal_norm(),
-                         'delta_J'   : oldJ-J,
+                         'delta_J'   : abs(oldJ-J),
                          'objective' : J,
                          'lbfgs'     : Hk })
             self.record_progress()

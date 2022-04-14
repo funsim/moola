@@ -174,7 +174,7 @@ class NewtonCG(OptimisationAlgorithm):
             self.update({'iteration' : i,
                          'control'   : x,
                          'grad_norm' : r.primal_norm(),
-                         'delta_J'   : oldJ-J,
+                         'delta_J'   : abs(oldJ-J),
                          'objective' : J,
                          'lbfgs'     : B })
             self.record_progress()

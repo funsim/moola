@@ -97,6 +97,7 @@ class SteepestDescent(OptimisationAlgorithm):
             self.update({"control"   : m,
                          "iteration" : it,
                          "grad_norm" : grad.norm(),
+                         "delta_J"   : abs(j - j_prev),
                          "objective" : j})
             self.record_progress()
         return self.data

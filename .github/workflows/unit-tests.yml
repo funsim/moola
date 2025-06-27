@@ -15,7 +15,6 @@ on:
 jobs:
   test-code:
     runs-on: ubuntu-latest
-    container: ubuntu:24.04
 
     steps:
       - uses: actions/checkout@v4

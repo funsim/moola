@@ -1,0 +1,27 @@
+name: Test package
+
+on:
+  push:
+    branches:
+      - main
+  
+  pull_request:
+    branches:
+      - main
+    
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  test-code:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install package
+        run: python3 -m pip install .[test]
+
+      - name: Run tests
+        run: python3 -m pytest -vs tests/unit tests/numpy

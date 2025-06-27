@@ -1,0 +1,70 @@
+[build-system] # Require setuptool version due to https://github.com/pypa/setuptools/issues/2938
+requires = ["setuptools>=61.0.0", "wheel"]
+
+[project]
+name = "moola"
+version = "0.1.7"
+description = "Moola optimisation package"
+authors = [
+      { name = "Simon W. Funke" },
+      { name = "Jørgen S. Dokken", email = "dokken@simula.no" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+dependencies = ["numpy"]
+
+
+[project.optional-dependencies]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+testpaths = ["tests"]
+
+[tool.mypy]
+ignore_missing_imports = true
+# Folders to exclude
+exclude = ["docs/", "build/"]
+# Folder to check with mypy
+files = ["src", "tests"]
+
+[tool.ruff]
+src = ["src", "docs", "tests", "examples"]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+      # Pyflakes
+      "F",
+      # Pycodestyle
+      "E",
+      "W",
+      # isort
+      "I001",
+]
+
+
+[tool.ruff.lint.isort]
+known-first-party = ["moola"]
+known-third-party = [
+      "dolfin",
+      "basix",
+      "dolfinx",
+      "ffcx",
+      "ufl",
+      "gmsh",
+      "numpy",
+      "pytest",
+      "pyadjoint",
+]
+section-order = [
+      "future",
+      "standard-library",
+      "mpi",
+      "third-party",
+      "first-party",
+      "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+"mpi" = ["mpi4py", "petsc4py"]

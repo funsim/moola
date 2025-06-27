@@ -1,10 +1,10 @@
-from .dolfin_vector import DolfinVector, DolfinPrimalVector, DolfinDualVector
+from .dolfinx_vector import DolfinxVector, DolfinxPrimalVector, DolfinxDualVector
 from moola.linalg import Vector
 from moola.misc import events
 from math import sqrt
-from numpy import array, zeros, ndarray, eye
+from numpy import zeros, ndarray
 
-class RieszMapSet(object):
+class RieszMapSet():
 
     def __init__(self, inner_product="l2", map_operator=None, inverse = "default"):
         
@@ -44,7 +44,7 @@ class IdentityMapSet(RieszMapSet):
     def __init__(self):
         RieszMapSet.__init__(self, inner_product = "l2")
 
-class DolfinVectorSet(Vector):
+class DolfinxVectorSet(Vector):
 
     def __init__(self, vector_list, riesz_map = None):
         '''An implementation for set of vectors based on FEniCS data types.
@@ -59,8 +59,8 @@ class DolfinVectorSet(Vector):
         '''
 
         for vec in vector_list:
-            if not isinstance(vec, DolfinVector):
-                raise ValueError("vector_list must be a list of DolfinVectors")
+            if not isinstance(vec, DolfinxVector):
+                raise ValueError("vector_list must be a list of DolfinxVectors")
         self.vector_list = zeros(len(vector_list), dtype = object)
         self.vector_list[:] = vector_list
         
@@ -126,27 +126,27 @@ class DolfinVectorSet(Vector):
             return self.__class__(vector_list_cpy)
 
 
-class DolfinPrimalVectorSet(DolfinVectorSet):
+class DolfinxPrimalVectorSet(DolfinxVectorSet):
     """ A class for representing primal vectors. """
     def __init__(self, vector_list, riesz_map = None):
         for i, v in enumerate(vector_list):
-            if not isinstance(v, DolfinPrimalVector):
+            if not isinstance(v, DolfinxPrimalVector):
                 raise TypeError("Vector with index {} is not a DolfinPrimalVector.".format(i))
-        DolfinVectorSet.__init__(self, vector_list, riesz_map = riesz_map)
+        DolfinxVectorSet.__init__(self, vector_list, riesz_map = riesz_map)
 
     def dual(self):
         """ Returns the dual representation. """
         if self.riesz_map.inner_product == "l2":
-            return DolfinDualVectorSet([vec.dual() for vec in self.vector_list],
+            return DolfinxDualVectorSet([vec.dual() for vec in self.vector_list],
                                        riesz_map = self.riesz_map)
         else:
-            return DolfinDualVectorSet([vec.dual() for vec in self.riesz_map.riesz_map * self.vector_list],
+            return DolfinxDualVectorSet([vec.dual() for vec in self.riesz_map.riesz_map * self.vector_list],
                                        riesz_map = self.riesz_map)
             
 
     def inner(self, vec):
         """ Computes the inner product with vec. """
-        assert isinstance(vec, DolfinPrimalVectorSet)
+        assert isinstance(vec, DolfinxPrimalVectorSet)
         events.increment("Inner product")
 
         return sum([ss.inner(vec) for ss, vec in zip(self.vector_list, vec.vector_list)])
@@ -158,29 +158,29 @@ class DolfinPrimalVectorSet(DolfinVectorSet):
     primal_norm = norm
 
 
-class DolfinDualVectorSet(DolfinVectorSet):
+class DolfinxDualVectorSet(DolfinxVectorSet):
     """ A class for representing dual vectors. """
     def __init__(self, vector_list, riesz_map = None):
         for i, v in enumerate(vector_list):
-            if not isinstance(v, DolfinDualVector):
+            if not isinstance(v, DolfinxDualVector):
                 raise TypeError("Vector with index {} is not a DolfinDualVector.".format(i))
-        DolfinVectorSet.__init__(self, vector_list, riesz_map)
+        DolfinxVectorSet.__init__(self, vector_list, riesz_map)
 
     def apply(self, primal):
         """ Applies the dual vector to a primal vector. """
-        assert isinstance(primal, DolfinPrimalVectorSet)
+        assert isinstance(primal, DolfinxPrimalVectorSet)
         return sum([ss.apply(vec) for ss, vec in zip(self.vector_list, primal.vector_list)])
 
     def primal(self):
         """ Returns the primal representation. """
         #events.increment("Dual -> primal map")
         if self.riesz_map.inner_product == "l2":
-            return DolfinPrimalVectorSet([vec.primal() for vec in self.vector_list], 
+            return DolfinxPrimalVectorSet([vec.primal() for vec in self.vector_list], 
                                          riesz_map = self.riesz_map)
         else:
             primal_vecs = zeros(len(self), dtype = "object")
             primal_vecs[:] = [v.primal() for v in self.vector_list]
-            return DolfinPrimalVectorSet(self.riesz_map.riesz_inv * primal_vecs,
+            return DolfinxPrimalVectorSet(self.riesz_map.riesz_inv * primal_vecs,
                                          riesz_map = self.riesz_map)
             
 
@@ -189,4 +189,4 @@ class DolfinDualVectorSet(DolfinVectorSet):
 
         return sqrt(self.apply(self.primal()))
 
-DolfinLinearFunctional = DolfinDualVector
+DolfinxLinearFunctional = DolfinxDualVector

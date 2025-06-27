@@ -17,7 +17,7 @@ class RieszMap(object):
         self.V = V
         import dolfin
 
-        if inner_product is not "custom":
+        if inner_product != "custom":
             u = dolfin.TrialFunction(V)
             v = dolfin.TestFunction(V)
 
@@ -108,7 +108,7 @@ class DolfinVector(Vector):
     def array(self):
         ''' Returns the vector as a numpy.array object. If local=False, the
         global array must be returned in a distributed environment. '''
-        return self.data.vector().array()
+        return self.data.vector()[:]
 
     def scale(self, s):
         v = self.data.vector()

@@ -124,6 +124,8 @@ class OptimisationAlgorithm(object):
 
     @property
     def convergence_status(self):
+        data = self.data
+        options = self.options
         reasons = {-1: '\nMaximum number of iterations reached.\n',
                     2: '\nTolerance reached: delta_j < jtol.\n',
                     1: '\nTolerance reached: grad_norm < gtol.\n',
